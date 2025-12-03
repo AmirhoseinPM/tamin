@@ -1,0 +1,3132 @@
+openapi: 3.1.0
+info:
+  title: Taminyar Shop Platform â€“ BFF & Domain APIs
+  description: |
+    Backend-for-Frontend (BFF) and core domain APIs for the Taminyar shop platform.
+
+    Main capabilities:
+    - Self-service registration with phone number, password, and buyer type (BROKER / FACTORY_MANAGER / PUBLIC)
+    - OTP-based activation and auto-login after successful registration
+    - Admin approval / rejection of newly registered users
+    - Passwordless login via one-time code (OTP)
+    - Password reset flow secured by OTP
+    - Product catalog CRUD & lookup
+    - Cart orchestration (per current authenticated user) and simple Order creation
+
+    Authentication:
+    - OAuth2 / OIDC via dedicated Authorization Server
+    - JWT access tokens, buyer type propagated via token claims
+  contact:
+    name: Taminyar Platform Team
+    email: support@taminyar.local
+  license:
+    name: Internal use only
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local development
+  - url: https://api.taminyar.local
+    description: Production
+tags:
+  - name: Cart
+    description: |
+      Shopping cart operations for both guest and authenticated users.
+
+      Flows:
+      - Guest cart:
+        * Create anonymous cart
+        * Add/update/remove items using cartId stored in cookie/session
+      - Authenticated B2B cart:
+        * Create cart bound to the current user
+        * Add/update/remove items with access control
+
+      Checkout:
+      - Always requires authentication
+      - If the cart is still anonymous, it will be attached to the current user at checkout time.
+  - name: Authentication BFF
+    description: |
+      Frontend-facing authentication and registration flows.
+
+      Includes:
+      - Self-service registration with phone + password + buyer type + optional company name
+      - OTP verification and automatic login
+      - Passwordless login via OTP (login without password)
+      - Password reset via OTP
+      - Fetching current user's basic profile (/me)
+
+      These endpoints orchestrate the Authorization Server and the User domain;
+      they are the main entry points used by the web/mobile UI.
+  - name: Categories
+    description: |
+      Category and brand management.
+
+      Admin endpoints:
+      - Create main/sub/brand categories
+      - Update category name and image
+
+      Public endpoints:
+      - List categories by type (main / sub / brand) or all together.
+  - name: Orders
+    description: Operations for creating and managing orders
+  - name: Admin Approval BFF
+    description: |
+      Admin-facing BFF endpoints for managing self-registered users.
+
+      Main use cases:
+      - Approve pending registrations after manual review.
+      - Reject registrations that do not meet business rules.
+
+      Security:
+      - These endpoints are intended to be protected by admin-only access tokens.
+      - Typically consumed by a back-office / admin UI.
+  - name: Product Batches
+    description: |
+      Product batch management: pricing, quantities, logistics dates and investment milestones.
+
+      Admin endpoints:
+      - Create/update/delete batches
+      - Step-wise PATCH updates (core info, quantities, dates, quality, risk, milestones, payment options)
+
+      Public endpoints:
+      - Paginated search/filter
+      - Batch detail view for UI cards and PDP.
+  - name: Products
+    description: |
+      Product catalog (without price or inventory).
+
+      Admin capabilities:
+      - Create / update / delete products
+      - Upload / remove main, thumbnail, and gallery images
+
+      Public capabilities:
+      - Fetch product details by code
+      - Fetch product summary for other services (e.g. cart, order)
+paths:
+  /api/products/{code}:
+    get:
+      tags:
+        - Products
+      summary: Get product details by code
+      description: Returns full product details (without price/inventory) by its business code, including image gallery.
+      operationId: get
+      parameters: []
+      responses:
+        '200':
+          description: Product found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '404':
+          description: Product not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+    put:
+      tags:
+        - Products
+      summary: Update product in catalog (admin)
+      description: |
+        Updates an existing product, identified by its business code.
+
+        Notes:
+        - mainImageUrl, thumbnailImageUrl and galleryImageUrls provided here will overwrite
+          the existing values in the product.
+        - To incrementally add/remove images, prefer the dedicated image endpoints.
+      operationId: update
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductRequest'
+        required: true
+      responses:
+        '200':
+          description: Product successfully updated.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '404':
+          description: Product not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+    delete:
+      tags:
+        - Products
+      summary: Delete product (idempotent, admin)
+      description: |
+        Deletes a product from the catalog by its code.
+
+        Idempotency:
+        - If the product does not exist, the operation still returns 204 (no content).
+      operationId: delete
+      parameters: []
+      responses:
+        '204':
+          description: Product successfully deleted or did not exist.
+  /api/cart/items:
+    put:
+      tags:
+        - Cart
+      summary: Update item quantity in cart
+      description: Changes the quantity of an existing item in the cart.
+      operationId: updateItem
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateItemQuantityRequest'
+        required: true
+      responses:
+        '200':
+          description: Item quantity updated.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '403':
+          description: Current user does not have access to this cart.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '404':
+          description: Cart or ProductBatch not found in cart.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+    post:
+      tags:
+        - Cart
+      summary: Add item to cart
+      description: |
+        Adds a new ProductBatch to the cart or increases its quantity
+        if the item already exists.
+      operationId: addItem
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddItemRequest'
+        required: true
+      responses:
+        '200':
+          description: Item added to cart.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '403':
+          description: Current user does not have access to this cart.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '404':
+          description: Cart or ProductBatch not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+    delete:
+      tags:
+        - Cart
+      summary: Remove item from cart
+      description: Removes an item (ProductBatch) from the cart.
+      operationId: removeItem
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoveItemRequest'
+        required: true
+      responses:
+        '200':
+          description: Item removed from cart.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '403':
+          description: Current user does not have access to this cart.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '404':
+          description: Cart or ProductBatch not found in cart.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+  /api/admin/product-batches/{id}:
+    put:
+      tags:
+        - Product Batches
+      summary: Fully update ProductBatch (admin)
+      description: |
+        Performs a full update of the batch.
+
+        WARNING:
+        - This replaces all stored values for the batch.
+        - For multi-step flows, prefer using the PATCH endpoints to update only specific sections.
+      operationId: update_1
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductBatchRequest'
+        required: true
+      responses:
+        '200':
+          description: Batch successfully updated.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchDetailResponse'
+        '404':
+          description: Batch not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchDetailResponse'
+    delete:
+      tags:
+        - Product Batches
+      summary: Delete ProductBatch (admin)
+      description: Deletes a batch by its unique identifier. If the batch does not exist, an appropriate error is returned.
+      operationId: delete_1
+      parameters: []
+      responses:
+        '204':
+          description: Batch successfully deleted.
+        '404':
+          description: Batch not found.
+  /api/admin/categories/{id}:
+    put:
+      tags:
+        - Categories
+      summary: Update category (admin)
+      description: |
+        Updates the name and related categories of an existing category.
+
+        Notes:
+        - Type (MAIN / SUB / BRAND) is not changed by this endpoint.
+      operationId: update_2
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+        required: true
+      responses:
+        '200':
+          description: Category successfully updated.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '404':
+          description: Category not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+  /bff/auth/verify-otp:
+    post:
+      tags:
+        - Authentication BFF
+      summary: Verify registration OTP and auto-login
+      description: |
+        Completes the self-service registration flow.
+
+        Behaviour:
+        - Verifies the OTP associated with the given registrationId.
+        - If valid, enables the corresponding user in:
+          * Authorization Server
+          * User bounded context
+        - Uses the phoneNumber + password to obtain access/refresh tokens from the Authorization Server.
+        - Returns the tokens inside the response for immediate login (auto-login).
+
+        Error cases:
+        - Invalid or expired OTP â†’ 4xx error (handled by domain services).
+      operationId: verifyOtp
+      requestBody:
+        description: RegistrationId, OTP code, phone number, and password to finalize registration.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyOtpRequest'
+        required: true
+      responses:
+        '200':
+          description: OTP verified and user logged in successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyOtpResponse'
+        '400':
+          description: Invalid request payload or OTP.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/VerifyOtpResponse'
+  /bff/auth/register:
+    post:
+      tags:
+        - Authentication BFF
+      summary: Start self-service registration
+      description: |
+        Starts the self-service registration flow for a new user.
+
+        Steps:
+        1) Creates a disabled user in the Authorization Server using phone + password + full name + buyer type (+ optional company name).
+        2) Mirrors the user in the User bounded context as DISABLED.
+        3) Starts a SelfRegistrationRequest and sends an OTP to the given phone number.
+        4) Returns a registrationId and status=OTP_SENT.
+
+        Notes:
+        - This endpoint does NOT log the user in yet.
+        - Client must call /bff/auth/verify-otp with registrationId + code + credentials to complete registration.
+      operationId: register
+      requestBody:
+        description: Registration information including full name, phone, password, buyer type and optional company name.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+        required: true
+      responses:
+        '202':
+          description: Registration started and OTP has been sent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          description: Validation error in the registration request.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+  /bff/auth/password/reset/request:
+    post:
+      tags:
+        - Authentication BFF
+      summary: Request password reset OTP
+      description: |
+        Starts the password reset flow.
+
+        Behaviour:
+        - Finds the user in the User bounded context by phone number.
+        - Sends a password reset OTP to the user's phone.
+        - Returns status=OTP_SENT with a generic message (no user enumeration).
+
+        Next step:
+        - Client must call /bff/auth/password/reset/confirm with phoneNumber + OTP + newPassword.
+      operationId: requestPasswordReset
+      requestBody:
+        description: Phone number of the account requesting password reset.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequestDto'
+        required: true
+      responses:
+        '200':
+          description: Password reset OTP flow started.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordResetStartResponse'
+  /bff/auth/password/reset/confirm:
+    post:
+      tags:
+        - Authentication BFF
+      summary: Confirm password reset using OTP
+      description: |
+        Completes the password reset flow.
+
+        Behaviour:
+        - Verifies the reset OTP for the given phone number.
+        - On success, calls the Authorization Server to change the user's password.
+        - Does not automatically log the user in (but this could be extended later
+          by calling an internal token endpoint and returning tokens).
+
+        Typical UI flow:
+        - User enters phone number, receives OTP.
+        - User enters phone + OTP + new password, calls this endpoint.
+        - After success, user logs in again with the new password.
+      operationId: confirmPasswordReset
+      requestBody:
+        description: Phone number, OTP code, and new password.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirmRequest'
+        required: true
+      responses:
+        '200':
+          description: Password has been successfully updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordResetConfirmResponse'
+        '400':
+          description: Invalid OTP or password reset request.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PasswordResetConfirmResponse'
+  /bff/auth/login/otp/verify:
+    post:
+      tags:
+        - Authentication BFF
+      summary: Verify OTP and complete passwordless login
+      description: |
+        Completes the passwordless login flow.
+
+        Behaviour:
+        - Verifies the OTP for the given phone number via LoginOtpService.
+        - On success, uses the verified phone number as the subject to obtain
+          access/refresh tokens from the Authorization Server.
+        - Returns tokens plus a SUCCESS status to the client.
+
+        Security:
+        - OTPs are short-lived and single-use.
+        - After successful verification, the OTP becomes invalid.
+      operationId: verifyOtp_1
+      requestBody:
+        description: Phone number and OTP code to complete passwordless login.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpLoginVerifyRequest'
+        required: true
+      responses:
+        '200':
+          description: OTP verified and tokens returned for passwordless login.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OtpLoginVerifyResponse'
+        '400':
+          description: Invalid OTP or request.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/OtpLoginVerifyResponse'
+  /bff/auth/login/otp/request:
+    post:
+      tags:
+        - Authentication BFF
+      summary: Request OTP for passwordless login
+      description: |
+        Starts the passwordless (OTP-based) login flow.
+
+        Behaviour:
+        - Looks up the user by phone number in the User domain.
+        - If an active account exists, sends a login OTP to the phone.
+        - Always returns a generic successful response (status=OTP_SENT)
+          so that clients cannot use this endpoint to probe which phone numbers exist
+          (protection against user enumeration).
+
+        Next step:
+        - Client must call /bff/auth/login/otp/verify with phoneNumber + OTP code.
+      operationId: requestOtp
+      requestBody:
+        description: Phone number for which the OTP should be generated.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpLoginRequest'
+        required: true
+      responses:
+        '200':
+          description: OTP login flow started (OTP sent if a matching account exists).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OtpLoginStartResponse'
+  /bff/admin/users/reject/{userId}:
+    post:
+      tags:
+        - Admin Approval BFF
+      summary: Reject a pending user
+      description: |
+        Rejects a self-registered user.
+
+        Behaviour:
+        - Marks the user as REJECTED in the User bounded context.
+        - Does NOT enable the account in the Authorization Server.
+
+        Typical UI usage:
+        - Admin review screen with Reject/Approve actions for new registrations.
+
+        Notes:
+        - This endpoint should only be accessible to admin users.
+      operationId: reject
+      parameters: []
+      responses:
+        '200':
+          description: User successfully rejected.
+          content:
+            application/json:
+              schema:
+                type: string
+                description: |
+                  Simple JSON object containing the user's external id and resulting status.
+                  Keys:
+                  - userId: external id of the user.
+                  - status: resulting status, e.g. 'REJECTED'.
+                example:
+                  userId: usr_123456789
+                  status: REJECTED
+        '400':
+          description: Invalid user id or user is not in a state that can be rejected.
+          content:
+            '*/*':
+              schema:
+                type: object
+        '401':
+          description: Unauthorized - missing or invalid admin credentials.
+          content:
+            '*/*':
+              schema:
+                type: object
+        '403':
+          description: Forbidden - caller does not have admin privileges.
+          content:
+            '*/*':
+              schema:
+                type: object
+        '404':
+          description: User not found.
+          content:
+            '*/*':
+              schema:
+                type: object
+      security:
+        - adminAuth: []
+  /bff/admin/users/approve/{userId}:
+    post:
+      tags:
+        - Admin Approval BFF
+      summary: Approve a pending user
+      description: |
+        Approves a self-registered user.
+
+        Behaviour:
+        1) Marks the user as APPROVED and ACTIVE in the User bounded context.
+        2) Calls the Authorization Server to:
+           - Enable the underlying account.
+           - Grant roles/authorities based on BuyerType
+             (e.g. BROKER, FACTORY_MANAGER, PUBLIC).
+
+        Typical consumers:
+        - Back-office admin UI for reviewing and approving new registrations.
+
+        Notes:
+        - This endpoint should only be accessible to admin users.
+      operationId: approve
+      parameters: []
+      responses:
+        '200':
+          description: User successfully approved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApproveResponse'
+        '400':
+          description: Invalid user id or user is not in a state that can be approved.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApproveResponse'
+        '401':
+          description: Unauthorized - missing or invalid admin credentials.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApproveResponse'
+        '403':
+          description: Forbidden - caller does not have admin privileges.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApproveResponse'
+        '404':
+          description: User not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApproveResponse'
+      security:
+        - adminAuth: []
+  /api/products:
+    post:
+      tags:
+        - Products
+      summary: Create product in catalog (admin)
+      description: |
+        Creates a new product in the catalog.
+
+        Notes:
+        - mainImageUrl and thumbnailImageUrl can be set directly or via image upload endpoints.
+        - galleryImageUrls can be used to pre-populate the image gallery.
+      operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductRequest'
+        required: true
+      responses:
+        '200':
+          description: Product successfully created.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '400':
+          description: Validation error in the request payload.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+  /api/products/{code}/images/gallery:
+    post:
+      tags:
+        - Products
+      summary: Upload one or more GALLERY images for product (admin)
+      description: |
+        Uploads one or more gallery images for the given product.
+
+        Request:
+        - Method: POST
+        - Path: /api/products/{code}/images/gallery
+        - Content-Type: multipart/form-data
+        - Part name: files (can contain 1..N files)
+
+        Behaviour:
+        - Each file is stored via ImageStorageService (gallery variant).
+        - New URLs are appended to the existing gallery image list.
+      operationId: uploadGalleryImages
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  description: Gallery image files to upload (1..N).
+                  items:
+                    type: string
+                    format: binary
+              required:
+                - files
+      responses:
+        '200':
+          description: Gallery images uploaded and product updated.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '404':
+          description: Product not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+    delete:
+      tags:
+        - Products
+      summary: Remove a GALLERY image of product (admin)
+      description: |
+        Removes a single gallery image of the given product.
+
+        Behaviour:
+        - Removes the URL from the product's gallery list.
+        - Attempts to delete the underlying file via ImageStorageService (best-effort).
+      operationId: deleteGalleryImage
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoveGalleryImageRequest'
+        required: true
+      responses:
+        '200':
+          description: Gallery image removed (if existed).
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '404':
+          description: Product not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+  /api/products/{code}/image/thumbnail:
+    post:
+      tags:
+        - Products
+      summary: Upload and set THUMBNAIL image for product (admin)
+      description: |
+        Uploads a THUMBNAIL image for the given product and stores its path/URL.
+
+        Request:
+        - Method: POST
+        - Path: /api/products/{code}/image/thumbnail
+        - Content-Type: multipart/form-data
+        - Part name: file
+      operationId: uploadThumbnailImage
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Thumbnail image file to upload.
+              required:
+                - file
+      responses:
+        '200':
+          description: Thumbnail image uploaded and product updated.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '404':
+          description: Product not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+    delete:
+      tags:
+        - Products
+      summary: Remove THUMBNAIL image of product (admin)
+      description: |
+        Removes the THUMBNAIL image of the given product.
+
+        Behaviour:
+        - Reads current thumbnailImageUrl from the product.
+        - Attempts to delete the underlying file via ImageStorageService (best-effort).
+        - Clears the thumbnailImageUrl for the product.
+      operationId: deleteThumbnailImage
+      parameters: []
+      responses:
+        '200':
+          description: Thumbnail image removed (if existed).
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '404':
+          description: Product not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+  /api/products/{code}/image/main:
+    post:
+      tags:
+        - Products
+      summary: Upload and set MAIN image for product (admin)
+      description: |
+        Uploads a MAIN image for the given product and stores its path/URL.
+
+        Request:
+        - Method: POST
+        - Path: /api/products/{code}/image/main
+        - Content-Type: multipart/form-data
+        - Part name: file
+      operationId: uploadMainImage
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Main image file to upload.
+              required:
+                - file
+      responses:
+        '200':
+          description: Main image uploaded and product updated.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '404':
+          description: Product not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+    delete:
+      tags:
+        - Products
+      summary: Remove MAIN image of product (admin)
+      description: |
+        Removes the MAIN image of the given product.
+
+        Behaviour:
+        - Reads current mainImageUrl from the product.
+        - Attempts to delete the underlying file via ImageStorageService (best-effort).
+        - Clears the mainImageUrl for the product.
+      operationId: deleteMainImage
+      parameters: []
+      responses:
+        '200':
+          description: Main image removed (if existed).
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '404':
+          description: Product not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+  /api/orders:
+    post:
+      tags:
+        - Orders
+      summary: Create a simple order
+      description: Create an order for a single product
+      operationId: create_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CreateOrderResponse'
+  /api/cart:
+    post:
+      tags:
+        - Cart
+      summary: Create cart for current authenticated user (B2B)
+      description: |
+        Creates a new cart that is immediately bound to the current user.
+
+        Rules:
+        - Requires authentication.
+        - If the user has BuyerType.PUBLIC, the operation is forbidden (B2C users
+          are expected to use guest carts and later convert them at checkout).
+      operationId: createCart
+      responses:
+        '201':
+          description: User cart created.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CreateCartResponse'
+        '401':
+          description: Authentication required.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CreateCartResponse'
+        '403':
+          description: User not allowed to create a B2B cart.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CreateCartResponse'
+  /api/cart/checkout:
+    post:
+      tags:
+        - Cart
+      summary: Checkout cart and create order
+      description: |
+        Converts the cart into an order (checkout).
+
+        Requirements:
+        - Authentication is mandatory.
+        - If the cart is still anonymous, it will be attached to the current user.
+        - If the cart belongs to another user, the operation is forbidden.
+
+        Behaviour:
+        - Sets the selected paymentType on the cart.
+        - Calls downstream order service via CartService.confirmCart(cartId).
+      operationId: checkout
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutRequest'
+        required: true
+      responses:
+        '200':
+          description: Checkout completed and order created.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CheckoutResponse'
+        '401':
+          description: Authentication required.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CheckoutResponse'
+        '403':
+          description: Current user does not own this cart.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CheckoutResponse'
+        '404':
+          description: Cart not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CheckoutResponse'
+  /api/cart/anonymous:
+    post:
+      tags:
+        - Cart
+      summary: Create guest (anonymous) cart
+      description: |
+        Creates a cart that is not initially bound to any authenticated user.
+
+        Typical usage:
+        - Front-end stores the returned cartId in a cookie/localStorage.
+        - Items can be added/updated/removed using only this cartId.
+      operationId: createAnonymousCart
+      responses:
+        '201':
+          description: Guest cart created.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CreateCartResponse'
+  /api/admin/product-batches:
+    post:
+      tags:
+        - Product Batches
+      summary: Create a new ProductBatch (admin)
+      description: |
+        Creates a new product batch for a given product code.
+
+        Required fields:
+        - productCode
+        - productName
+        - status (default: SUPPLYING)
+        - unit (default: TON)
+        - currency (default: TOMAN)
+
+        Other fields can be provided depending on the creation step and UI flow.
+      operationId: create_2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductBatchRequest'
+        required: true
+      responses:
+        '200':
+          description: Batch successfully created.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchDetailResponse'
+        '400':
+          description: Validation error in the request payload.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchDetailResponse'
+  /api/admin/categories/{id}/image:
+    post:
+      tags:
+        - Categories
+      summary: Upload and set category image (admin)
+      description: |
+        Uploads an image file for the given category and stores its path/URL.
+
+        Request:
+        - Content-Type: multipart/form-data
+        - Part name: file (the image binary)
+      operationId: updateImage
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Image file to upload.
+              required:
+                - file
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+    delete:
+      tags:
+        - Categories
+      summary: Remove category image (admin)
+      description: |
+        Removes the current image for the given category.
+
+        Behaviour:
+        - Reads the current imageUrl from the Category.
+        - Attempts to delete the underlying file via ImageStorageService (best-effort).
+        - Clears the imageUrl field on the Category (sets it to null).
+      operationId: deleteImage
+      parameters: []
+      responses:
+        '200':
+          description: Category image successfully removed.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '404':
+          description: Category not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+  /api/admin/categories/sub:
+    post:
+      tags:
+        - Categories
+      summary: Create a SUB category (admin)
+      description: |
+        Creates a new SUB category.
+
+        Notes:
+        - relatedCategoryIds can be used to link this SUB category to one or more MAIN categories.
+      operationId: createSub
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+        required: true
+      responses:
+        '200':
+          description: SUB category successfully created.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '400':
+          description: Validation error in the request payload.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+  /api/admin/categories/main:
+    post:
+      tags:
+        - Categories
+      summary: Create a MAIN category (admin)
+      description: |
+        Creates a new MAIN category.
+
+        Typical use:
+        - Used by admin panel to manage top-level navigation or product groupings.
+      operationId: createMain
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+        required: true
+      responses:
+        '200':
+          description: MAIN category successfully created.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '400':
+          description: Validation error in the request payload.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+  /api/admin/categories/brand:
+    post:
+      tags:
+        - Categories
+      summary: Create a BRAND category (admin)
+      description: |
+        Creates a new BRAND entry.
+
+        Notes:
+        - A BRAND is modeled as a Category with type=BRAND.
+        - relatedCategoryIds can be used to link this brand to one or more SUB categories.
+      operationId: createBrand
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+        required: true
+      responses:
+        '200':
+          description: BRAND successfully created.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '400':
+          description: Validation error in the request payload.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+  /api/admin/product-batches/{id}/risk:
+    patch:
+      tags:
+        - Product Batches
+      summary: Update risk profile and buyer approval (admin)
+      description: |
+        Step-wise update of risk profile:
+        - insurance coverage
+        - continuous supply
+        - buyer approval flag
+
+        Fields that are null are left unchanged.
+      operationId: updateRisk
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRiskRequest'
+        required: true
+      responses:
+        '200':
+          description: Risk profile successfully updated.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchDetailResponse'
+        '404':
+          description: Batch not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchDetailResponse'
+  /api/admin/product-batches/{id}/quantities:
+    patch:
+      tags:
+        - Product Batches
+      summary: Update quantities and containers (admin)
+      description: Step-wise update of total/available quantities and container counts for the batch.
+      operationId: updateQuantities
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateQuantitiesRequest'
+        required: true
+      responses:
+        '200':
+          description: Quantities successfully updated.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchDetailResponse'
+        '404':
+          description: Batch not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchDetailResponse'
+  /api/admin/product-batches/{id}/quality:
+    patch:
+      tags:
+        - Product Batches
+      summary: Update quality and packaging (admin)
+      description: Step-wise update of quality status, color status, packaging type and customs code.
+      operationId: updateQuality
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateQualityRequest'
+        required: true
+      responses:
+        '200':
+          description: Quality and packaging successfully updated.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchDetailResponse'
+        '404':
+          description: Batch not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchDetailResponse'
+  /api/admin/product-batches/{id}/payment:
+    patch:
+      tags:
+        - Product Batches
+      summary: Update payment options (admin)
+      description: Step-wise update of supported payment methods for the batch (online, bank transfer, installments).
+      operationId: updatePaymentInfo
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePaymentInfoRequest'
+        required: true
+      responses:
+        '200':
+          description: Payment options successfully updated.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchDetailResponse'
+        '404':
+          description: Batch not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchDetailResponse'
+  /api/admin/product-batches/{id}/milestones:
+    patch:
+      tags:
+        - Product Batches
+      summary: Update batch milestones (admin)
+      description: Replaces all batch lifecycle milestone flags and solar dates with the values provided in the request (Solar/Jalali yyyy/MM/dd).
+      operationId: updateMilestones
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMilestonesRequest'
+        required: true
+      responses:
+        '200':
+          description: Milestones successfully updated.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchDetailResponse'
+        '404':
+          description: Batch not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchDetailResponse'
+  /api/admin/product-batches/{id}/dates:
+    patch:
+      tags:
+        - Product Batches
+      summary: Update logistics dates (admin)
+      description: Step-wise update of exit, shipping, and delivery dates for the batch (Solar/Jalali strings formatted as yyyy/MM/dd).
+      operationId: updateDates
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDatesRequest'
+        required: true
+      responses:
+        '200':
+          description: Dates successfully updated.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchDetailResponse'
+        '404':
+          description: Batch not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchDetailResponse'
+  /api/admin/product-batches/{id}/core-info:
+    patch:
+      tags:
+        - Product Batches
+      summary: Update core properties of ProductBatch (admin)
+      description: 'Step-wise update of basic properties: name, brand, status, unit, currency, min order quantity, and unit price.'
+      operationId: updateCoreInfo
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCoreInfoRequest'
+        required: true
+      responses:
+        '200':
+          description: Core information successfully updated.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchDetailResponse'
+        '404':
+          description: Batch not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchDetailResponse'
+  /bff/auth/me:
+    get:
+      tags:
+        - Authentication BFF
+      summary: Get current authenticated user profile
+      description: |
+        Returns basic profile information for the currently authenticated user:
+        phone number, full name, company name, approval status, buyer type, and active flag.
+
+        Requirements:
+        - Requires a valid access token issued by the Authorization Server.
+        - If there is no authenticated user in the security context, HTTP 404 is returned.
+
+        Typical use:
+        - Called by the UI after login to show who is logged in, which company they belong to, and their status.
+      operationId: me
+      responses:
+        '200':
+          description: Current user profile has been successfully retrieved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Unauthorized â€“ missing or invalid access token.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: No user found for the current security context.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+  /api/products/{code}/summary:
+    get:
+      tags:
+        - Products
+      summary: Get product summary by code
+      description: |
+        Lightweight summary of a product to be used by other services
+        (e.g. cart, order, product batch).
+        Only exposes main and thumbnail URLs.
+      operationId: summary
+      parameters: []
+      responses:
+        '200':
+          description: Product summary returned.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductSummaryDto'
+        '404':
+          description: Product not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductSummaryDto'
+  /api/product-batches:
+    get:
+      tags:
+        - Product Batches
+      summary: Search and filter ProductBatches
+      description: |
+        Paginated search of product batches with optional filters:
+
+        Filters:
+        - name: partial match on product name
+        - status: batch status
+        - categoryId: product category identifier
+
+        Pagination:
+        - page: zero-based page index
+        - size: page size
+      operationId: list
+      parameters:
+        - name: arg0
+          in: query
+          description: Filter by partial product name.
+          required: false
+          schema:
+            type: string
+          example: coffee
+        - name: arg1
+          in: query
+          description: Filter by batch status.
+          required: false
+          schema:
+            type: string
+            enum:
+              - SUPPLYING
+              - SHIPPING
+              - DELIVERING
+              - WAREHOUSED
+          example: SUPPLYING
+        - name: arg2
+          in: query
+          description: Filter by product category id.
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: arg3
+          in: query
+          description: Zero-based page index.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+          example: 0
+        - name: arg4
+          in: query
+          description: Number of records per page.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 20
+          example: 20
+      responses:
+        '200':
+          description: Page of product batch summaries.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchSummaryResponse'
+  /api/product-batches/{id}:
+    get:
+      tags:
+        - Product Batches
+      summary: Get ProductBatch details (public + admin)
+      description: Returns full details of a product batch by its unique identifier.
+      operationId: get_1
+      parameters: []
+      responses:
+        '200':
+          description: Batch details successfully returned.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchDetailResponse'
+        '404':
+          description: Batch not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ProductBatchDetailResponse'
+  /api/categories:
+    get:
+      tags:
+        - Categories
+      summary: List categories (public + admin)
+      description: |
+        Returns a list of categories, optionally filtered by type.
+
+        Examples:
+        - Without type â†’ returns all categories (MAIN, SUB, BRAND).
+        - With type=MAIN â†’ returns only main categories.
+      operationId: list_1
+      parameters:
+        - name: arg0
+          in: query
+          description: 'Optional filter by category type: MAIN, SUB, BRAND.'
+          required: false
+          schema:
+            type: string
+            enum:
+              - BRAND
+              - MAIN
+              - SUB
+          example: MAIN
+      responses:
+        '200':
+          description: List of categories.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+  /api/categories/sub:
+    get:
+      tags:
+        - Categories
+      summary: List SUB categories (public + admin)
+      description: Returns all categories with type=SUB.
+      operationId: listSub
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryResponse'
+  /api/categories/main:
+    get:
+      tags:
+        - Categories
+      summary: List MAIN categories (public + admin)
+      description: Returns all categories with type=MAIN.
+      operationId: listMain
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryResponse'
+  /api/categories/brand:
+    get:
+      tags:
+        - Categories
+      summary: List BRAND categories (public + admin)
+      description: Returns all categories with type=BRAND.
+      operationId: listBrand
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryResponse'
+  /api/cart/{cartId}:
+    get:
+      tags:
+        - Cart
+      summary: Get cart details (guest or user)
+      description: |
+        Returns full cart details.
+
+        Access rules:
+        - Guest cart (no userId): having the cartId is enough.
+        - User-bound cart: only that user can access it.
+      operationId: getCart
+      parameters: []
+      responses:
+        '200':
+          description: Cart returned.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '403':
+          description: Current user does not have access to this cart.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '404':
+          description: Cart not found.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+components:
+  schemas:
+    ProductRequest:
+      type: object
+      description: |
+        Request payload for creating or updating a product in the catalog.
+
+        Notes:
+        - mainImageUrl and thumbnailImageUrl are usually set by the dedicated
+          image upload endpoints, but can be manually provided if needed.
+        - galleryImageUrls can optionally be provided to pre-populate the image gallery.
+      properties:
+        code:
+          type: string
+          description: Business code of the product (unique).
+          example: PRD-2025-STEEL-001
+          minLength: 1
+        name:
+          type: string
+          description: Display name of the product.
+          example: Hot Rolled Steel Sheet ST37
+          minLength: 1
+        description:
+          type: string
+          description: Long description of the product.
+          example: High quality hot rolled steel sheet suitable for construction and fabrication.
+        sku:
+          type: string
+          description: SKU (stock keeping unit) identifier, if any.
+          example: ST37-HR-4MM
+        customsCode:
+          type: string
+          description: Customs code (HS code) for export/import.
+          example: 72072090
+        categoryIds:
+          type: array
+          description: IDs of categories associated with this product (MAIN/SUB/BRAND).
+          example:
+            - 1
+            - 5
+            - 12
+          items:
+            type: integer
+            format: int64
+          uniqueItems: true
+        mainImageUrl:
+          type: string
+          description: |
+            URL of the main image for the product.
+            Typically set by the /image/main upload endpoint.
+          example: /static/images/products/PRD-2025-STEEL-001/main/PRD-2025-STEEL-001_xxx.jpg
+        thumbnailImageUrl:
+          type: string
+          description: |
+            URL of the thumbnail image for the product.
+            Typically set by the /image/thumbnail upload endpoint.
+          example: /static/images/products/PRD-2025-STEEL-001/thumbnail/PRD-2025-STEEL-001_xxx.jpg
+        galleryImageUrls:
+          type: array
+          description: |
+            Optional list of additional gallery image URLs for the product.
+            These are rendered in product image carousel besides main/thumbnail.
+          example:
+            - /static/images/products/PRD-2025-STEEL-001/gallery/img1.jpg
+          items:
+            type: string
+      required:
+        - code
+        - name
+    ProductResponse:
+      type: object
+      description: API response model representing a product in the catalog.
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Internal numeric identifier of the product.
+          example: 101
+        code:
+          type: string
+          description: Business product code (unique).
+          example: PRD-2025-STEEL-001
+        name:
+          type: string
+          description: Display name of the product.
+          example: Hot Rolled Steel Sheet ST37
+        description:
+          type: string
+          description: Long description of the product.
+        sku:
+          type: string
+          description: SKU identifier, if any.
+          example: ST37-HR-4MM
+        customsCode:
+          type: string
+          description: Customs code (HS code).
+          example: 72072090
+        categoryIds:
+          type: array
+          description: Associated category IDs.
+          example:
+            - 1
+            - 5
+            - 12
+          items:
+            type: integer
+            format: int64
+          uniqueItems: true
+        mainImageUrl:
+          type: string
+          description: URL of the main image of the product.
+          example: /static/images/products/PRD-2025-STEEL-001/main/PRD-2025-STEEL-001_xxx.jpg
+        thumbnailImageUrl:
+          type: string
+          description: URL of the thumbnail image of the product.
+          example: /static/images/products/PRD-2025-STEEL-001/thumbnail/PRD-2025-STEEL-001_xxx.jpg
+        galleryImageUrls:
+          type: array
+          description: |
+            List of additional gallery image URLs for this product.
+            Typically used to render the image carousel/slideshow in the product page.
+          example:
+            - /static/images/products/PRD-2025-STEEL-001/gallery/img1.jpg
+          items:
+            type: string
+    UpdateItemQuantityRequest:
+      type: object
+      description: Payload for changing quantity of an existing cart item.
+      properties:
+        cartId:
+          type: string
+          description: Target cart identifier.
+          example: c76bf9c3-7f44-4d3d-b0ad-1f2e1b4c3aaf
+          minLength: 1
+        productBatchId:
+          type: integer
+          format: int64
+          description: ID of the ProductBatch whose quantity should be updated.
+          example: 1303
+        quantity:
+          type: integer
+          format: int32
+          description: New quantity for the cart item.
+          example: 10
+      required:
+        - cartId
+        - productBatchId
+    CartItemResponse:
+      type: object
+      description: Represents a single item inside a cart.
+      properties:
+        productBatchId:
+          type: integer
+          format: int64
+          description: ID of the ProductBatch added to the cart.
+          example: 1303
+        productCode:
+          type: string
+          description: Product code snapshot at the time the item was added.
+          example: PRD-2025-STEEL-001
+        productName:
+          type: string
+          description: Product name snapshot at the time the item was added.
+          example: Hot Rolled Steel Sheet ST37
+        unitPrice:
+          type: number
+          description: Unit price for this batch at the time of adding to cart.
+          example: 48000000
+        quantity:
+          type: number
+          description: Quantity of this item in the cart.
+          example: 5
+        totalPrice:
+          type: number
+          description: Total price for this item (unitPrice * quantity).
+          example: 240000000
+    CartResponse:
+      type: object
+      description: Full representation of a cart including items and monetary totals.
+      properties:
+        id:
+          type: string
+          description: Cart identifier.
+          example: c76bf9c3-7f44-4d3d-b0ad-1f2e1b4c3aaf
+        userId:
+          type: string
+          description: User external ID this cart belongs to, if any.
+          example: usr_123456
+        buyerType:
+          type: string
+          description: Buyer type associated with this cart.
+          enum:
+            - BROKER
+            - FACTORY_MANAGER
+            - PUBLIC
+          example: FACTORY_MANAGER
+        status:
+          type: string
+          description: Current status of the cart (e.g. ACTIVE, CHECKED_OUT).
+          enum:
+            - ACTIVE
+            - CHECKED_OUT
+            - EXPIRED
+            - MERGED
+          example: ACTIVE
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp of the cart (UTC).
+          example: '2025-01-15T12:30:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp of the cart (UTC).
+          example: '2025-01-15T13:45:00Z'
+        items:
+          type: array
+          description: List of items in this cart.
+          items:
+            $ref: '#/components/schemas/CartItemResponse'
+        itemsTotal:
+          type: number
+          description: Total raw amount of items before discounts.
+          example: 500000000
+        discountTotal:
+          type: number
+          description: Total discount applied to this cart.
+          example: 20000000
+        payableTotal:
+          type: number
+          description: Final amount payable after discount.
+          example: 480000000
+        totalItemCount:
+          type: integer
+          format: int32
+          description: Total number of line items in the cart (for badge/counter).
+          example: 3
+        paymentType:
+          type: string
+          description: Selected payment type for this cart, if any.
+          enum:
+            - ONLINE
+            - BANK_TRANSFER
+            - INSTALLMENT
+          example: INSTALLMENT
+        installmentPrePayment:
+          type: number
+          description: Pre-payment amount for installment-based payments, if applicable.
+          example: 96000000
+    ProductBatchRequest:
+      type: object
+      description: |
+        Request DTO for creating or fully updating a product batch.
+
+        For multi-step scenarios you can:
+        - Use this DTO only on creation, and
+        - Use dedicated PATCH endpoints for partial updates (core info, quantities, dates, etc.).
+      properties:
+        productCode:
+          type: string
+          description: Unique product code (identifier of the base product in the Product module).
+          example: PRD-2025-001
+          minLength: 1
+        productName:
+          type: string
+          description: Display name of the product at the time the batch is created (snapshot for reporting).
+          example: Steel Sheet ST52 10mm
+          minLength: 1
+        brandName:
+          type: string
+          description: Brand/manufacturer associated with this batch.
+          example: Mobarakeh Steel
+        status:
+          type: string
+          description: |
+            Current status of the batch in the supply lifecycle.
+            If not provided, SUPPLYING is used as default.
+          enum:
+            - SUPPLYING
+            - SHIPPING
+            - DELIVERING
+            - WAREHOUSED
+          example: SUPPLYING
+        unit:
+          type: string
+          description: Primary sales unit for this batch.
+          enum:
+            - TON
+            - KILOGRAM
+            - GRAM
+            - LITER
+            - PIECE
+          example: TON
+        currency:
+          type: string
+          description: Currency used for pricing this batch.
+          enum:
+            - TOMAN
+            - RIAL
+            - USD
+            - EUR
+          example: TOMAN
+        minOrderQuantity:
+          type: number
+          description: Minimum order quantity in the sales unit.
+          example: 25
+          minimum: 0
+        unitPrice:
+          type: number
+          description: Unit price (e.g. price per ton).
+          example: 48000000
+          minimum: 0
+        totalQuantity:
+          type: number
+          description: Total supplied quantity in the sales unit.
+          example: 200
+          minimum: 0
+        availableQuantity:
+          type: number
+          description: Remaining sellable quantity.
+          example: 120
+          minimum: 0
+        containerCount:
+          type: integer
+          format: int32
+          description: Total number of containers.
+          example: 10
+        availableContainerCount:
+          type: integer
+          format: int32
+          description: Number of available/free containers.
+          example: 6
+        solarExitDate:
+          type: string
+          description: Exit date of the shipment from origin (Solar/Jalali, formatted as yyyy/MM/dd).
+          example: 1404/01/15
+        solarShippingDate:
+          type: string
+          description: Shipping/loading date (Solar/Jalali, formatted as yyyy/MM/dd).
+          example: 1404/01/20
+        solarDeliveryDate:
+          type: string
+          description: Final delivery date at destination (Solar/Jalali, formatted as yyyy/MM/dd).
+          example: 1404/02/01
+        qualityStatus:
+          type: string
+          description: Quality status of the batch.
+          enum:
+            - UNKNOWN
+            - A
+            - B
+            - C
+            - REJECTED
+          example: A
+        colorStatus:
+          type: string
+          description: Color/consistency status.
+          enum:
+            - UNKNOWN
+            - UNIFORM
+            - MIXED
+          example: UNIFORM
+        containerPackaging:
+          type: string
+          description: Packaging type description (e.g. Jumbo Bag, Bulk).
+          example: Jumbo Bag
+        customsCode:
+          type: string
+          description: Customs tariff code (HS Code).
+          example: 72072090
+        insuranceCovered:
+          type: boolean
+          description: Indicates whether the shipment is insured.
+          example: true
+        continuousSupply:
+          type: boolean
+          description: Indicates whether this product is supplied continuously.
+          example: false
+        buyerApproved:
+          type: boolean
+          description: Indicates whether the batch has been finally approved by the buyer / purchase manager.
+          example: false
+        orderInvoiceIssued:
+          type: boolean
+          description: Whether the commercial invoice for this batch has been issued.
+          example: true
+        solarOrderInvoiceIssuedDate:
+          type: string
+          description: Solar (Jalali) date when the order invoice was issued (yyyy/MM/dd).
+          example: 1403/01/15
+        investmentCompleted:
+          type: boolean
+          description: Whether the full investment for this batch has been completed.
+          example: true
+        salesAndDistribution:
+          type: boolean
+          description: Whether the batch has entered the sales and distribution phase.
+          example: false
+        arrivedAtPort:
+          type: boolean
+          description: Whether the shipment has arrived at the destination port.
+          example: false
+        productionStarted:
+          type: boolean
+          description: Whether production has started for this batch.
+          example: true
+        containerDeparted:
+          type: boolean
+          description: Whether the container has departed from the origin port.
+          example: false
+        roiReach:
+          type: boolean
+          description: Whether the expected ROI threshold for this batch has been reached.
+          example: false
+        solarInvestmentCompletedDate:
+          type: string
+          description: Solar (Jalali) date when the investment was fully completed (yyyy/MM/dd).
+          example: 1403/02/01
+        solarProductionStartedDate:
+          type: string
+          description: Solar (Jalali) date when production started (yyyy/MM/dd).
+          example: 1403/02/10
+        solarContainerDepartedDate:
+          type: string
+          description: Solar (Jalali) date when the container departed (yyyy/MM/dd).
+          example: 1403/02/20
+        solarArrivedAtPortDate:
+          type: string
+          description: Solar (Jalali) date when the shipment arrived at the port (yyyy/MM/dd).
+          example: 1403/02/25
+        solarSalesAndDistributionDate:
+          type: string
+          description: Solar (Jalali) date when sales and distribution started (yyyy/MM/dd).
+          example: 1403/03/01
+        solarRoiReachDate:
+          type: string
+          description: Solar (Jalali) date when the ROI target was reached (yyyy/MM/dd).
+          example: 1403/04/15
+        byOnlinePayment:
+          type: boolean
+          description: Whether this batch can be purchased via online payment.
+          example: true
+        byBankTransfer:
+          type: boolean
+          description: Whether this batch can be purchased via bank transfer.
+          example: true
+        byInstallment:
+          type: boolean
+          description: Whether this batch supports installment-based payments.
+          example: false
+      required:
+        - productCode
+        - productName
+    ProductBatchDetailResponse:
+      type: object
+      description: Full detailed view of a product batch.
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 'Unique identifier of the batch. In UI you can show it as #id.'
+          example: 1303
+        productCode:
+          type: string
+          description: Product code (for linking to Product module).
+          example: PRD-2025-001
+        productName:
+          type: string
+          description: Product name / card title.
+          example: Robusta Coffee Beans Grade AA
+        brandName:
+          type: string
+          description: Brand / manufacturer name.
+          example: Brand X
+        categoryIds:
+          type: array
+          description: Category IDs associated with this batch (used for filters / tags).
+          items:
+            type: integer
+            format: int64
+          uniqueItems: true
+        productImageUrl:
+          type: string
+          description: URL of main product image to show on the batch card.
+        minOrderQuantity:
+          type: number
+          description: Minimum order quantity.
+          example: 25
+        unit:
+          type: string
+          description: Sales unit (e.g. KILOGRAM, TON).
+          enum:
+            - TON
+            - KILOGRAM
+            - GRAM
+            - LITER
+            - PIECE
+          example: KILOGRAM
+        status:
+          type: string
+          description: Current status of the batch, e.g. 'SUPPLYING'.
+          enum:
+            - SUPPLYING
+            - SHIPPING
+            - DELIVERING
+            - WAREHOUSED
+          example: SUPPLYING
+        solarExitDate:
+          type: string
+          description: Exit date from origin (Solar/Jalali yyyy/MM/dd).
+          example: 1404/01/15
+        solarShippingDate:
+          type: string
+          description: Shipping/loading date (Solar/Jalali yyyy/MM/dd).
+          example: 1404/01/20
+        solarDeliveryDate:
+          type: string
+          description: Final delivery date (Solar/Jalali yyyy/MM/dd).
+          example: 1404/02/01
+        currency:
+          type: string
+          description: Currency used for pricing.
+          enum:
+            - TOMAN
+            - RIAL
+            - USD
+            - EUR
+          example: TOMAN
+        unitPrice:
+          type: number
+          description: Pre-purchase price per unit (used in text like 'pre-purchase price per ton').
+          example: 50000000
+        soldPercent:
+          type: integer
+          format: int32
+          description: Percentage of total volume that has been sold (0â€“100).
+          example: 75
+        remainingDays:
+          type: integer
+          format: int64
+          description: |
+            Number of days remaining until the main logistics date (exit/shipping/delivery).
+            Used for text like '10 days remaining'.
+            If the date is in the past, 0 is returned.
+          example: 10
+        totalQuantity:
+          type: number
+          description: Total supplied quantity.
+          example: 200
+        containerCount:
+          type: integer
+          format: int32
+          description: Total number of containers.
+          example: 10
+        availableContainerCount:
+          type: integer
+          format: int32
+          description: Number of available containers.
+          example: 6
+        qualityStatus:
+          type: string
+          description: Quality status of the batch.
+          enum:
+            - UNKNOWN
+            - A
+            - B
+            - C
+            - REJECTED
+          example: A
+        colorStatus:
+          type: string
+          description: Color/consistency status.
+          enum:
+            - UNKNOWN
+            - UNIFORM
+            - MIXED
+          example: UNIFORM
+        containerPackaging:
+          type: string
+          description: Packaging type.
+          example: Jumbo Bag
+        customsCode:
+          type: string
+          description: Customs tariff code (HS Code).
+          example: 72072090
+        insuranceCovered:
+          type: boolean
+          description: Whether the shipment is insured.
+          example: true
+        continuousSupply:
+          type: boolean
+          description: Whether this product is supplied continuously.
+          example: false
+        buyerApproved:
+          type: boolean
+          description: Whether the batch has been approved by the buyer.
+          example: false
+        orderInvoiceIssued:
+          type: boolean
+          description: Whether the commercial invoice for this batch has been issued.
+          example: true
+        solarOrderInvoiceIssuedDate:
+          type: string
+          description: Solar (Jalali) date when the order invoice was issued (yyyy/MM/dd).
+          example: 1403/01/15
+        investmentCompleted:
+          type: boolean
+          description: Whether the full investment for this batch has been completed.
+          example: true
+        salesAndDistribution:
+          type: boolean
+          description: Whether the batch has entered the sales and distribution phase.
+          example: false
+        arrivedAtPort:
+          type: boolean
+          description: Whether the shipment has arrived at the destination port.
+          example: false
+        productionStarted:
+          type: boolean
+          description: Whether production has started for this batch.
+          example: true
+        containerDeparted:
+          type: boolean
+          description: Whether the container has departed from the origin port.
+          example: false
+        roiReach:
+          type: boolean
+          description: Whether the expected ROI threshold for this batch has been reached.
+          example: false
+        solarInvestmentCompletedDate:
+          type: string
+          description: Solar (Jalali) date when the investment was fully completed (yyyy/MM/dd).
+          example: 1403/02/01
+        solarProductionStartedDate:
+          type: string
+          description: Solar (Jalali) date when production started (yyyy/MM/dd).
+          example: 1403/02/10
+        solarContainerDepartedDate:
+          type: string
+          description: Solar (Jalali) date when the container departed (yyyy/MM/dd).
+          example: 1403/02/20
+        solarArrivedAtPortDate:
+          type: string
+          description: Solar (Jalali) date when the shipment arrived at the port (yyyy/MM/dd).
+          example: 1403/02/25
+        solarSalesAndDistributionDate:
+          type: string
+          description: Solar (Jalali) date when sales and distribution started (yyyy/MM/dd).
+          example: 1403/03/01
+        solarRoiReachDate:
+          type: string
+          description: Solar (Jalali) date when the ROI target was reached (yyyy/MM/dd).
+          example: 1403/04/15
+        byOnlinePayment:
+          type: boolean
+          description: Whether this batch can be purchased via online payment.
+          example: true
+        byBankTransfer:
+          type: boolean
+          description: Whether this batch can be purchased via bank transfer.
+          example: true
+        byInstallment:
+          type: boolean
+          description: Whether this batch supports installment-based payments.
+          example: false
+    CategoryRequest:
+      type: object
+      description: Request payload for creating or updating a Category (name + related categories).
+      properties:
+        name:
+          type: string
+          description: Display name of the category or brand.
+          example: Flat Products
+          minLength: 1
+        relatedCategoryIds:
+          type: array
+          description: |
+            Set of related category IDs.
+            For example:
+            - For a SUB category, relatedCategoryIds may contain MAIN category IDs.
+            - For a BRAND, relatedCategoryIds may contain SUB category IDs.
+          example:
+            - 1
+            - 2
+            - 3
+          items:
+            type: integer
+            format: int64
+          uniqueItems: true
+      required:
+        - name
+    CategoryResponse:
+      type: object
+      description: API response model representing a Category.
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique identifier of the category.
+          example: 10
+        name:
+          type: string
+          description: Display name of the category or brand.
+          example: Flat Products
+        type:
+          type: string
+          description: 'Type of category: MAIN, SUB, or BRAND.'
+          enum:
+            - BRAND
+            - MAIN
+            - SUB
+          example: MAIN
+        imageUrl:
+          type: string
+          description: Image URL associated with this category (if any).
+          example: https://cdn.example.com/images/categories/flat-products.png
+        relatedCategoryIds:
+          type: array
+          description: |
+            Set of related category IDs.
+            Meaning depends on the type:
+            - For SUB categories, it may reference MAIN categories.
+            - For BRAND categories, it may reference SUB categories.
+          example:
+            - 1
+            - 2
+            - 3
+          items:
+            type: integer
+            format: int64
+          uniqueItems: true
+    VerifyOtpRequest:
+      type: object
+      description: Payload for verifying the registration OTP and completing registration.
+      properties:
+        registrationId:
+          type: integer
+          format: int64
+          description: Registration identifier obtained from /bff/auth/register.
+          example: 1001
+        code:
+          type: string
+          description: OTP code sent to the user's phone.
+          example: 123456
+        phoneNumber:
+          type: string
+          description: Phone number used during registration.
+          example: '+989121234567'
+        password:
+          type: string
+          description: Password provided during registration.
+          example: MySecureP@ssw0rd
+    VerifyOtpResponse:
+      type: object
+      description: Response after successful OTP verification and auto-login.
+      properties:
+        status:
+          type: string
+          description: Status of the verification.
+          example: OTP_VERIFIED
+        message:
+          type: string
+          description: Human-readable message.
+          example: Your phone number has been verified and you are now logged in.
+        tokens:
+          type: object
+          additionalProperties: {}
+          description: |
+            Raw token payload returned from the Authorization Server.
+            Typically includes fields such as access_token, refresh_token, expires_in, token_type, etc.
+    RegisterRequest:
+      type: object
+      description: Payload for starting self-service registration.
+      properties:
+        fullName:
+          type: string
+          description: Full name of the user.
+          example: Ali Ahmadi
+          maxLength: 64
+          minLength: 3
+        password:
+          type: string
+          description: User's desired password (stored only in the Authorization Server).
+          example: MySecureP@ssw0rd
+          maxLength: 128
+          minLength: 6
+        phoneNumber:
+          type: string
+          description: User's phone number in international or local numeric format.
+          example: '+989121234567'
+          minLength: 1
+          pattern: \+?\d{10,15}
+        buyerType:
+          type: string
+          description: Buyer type of the user. Defaults to PUBLIC when not provided.
+          enum:
+            - BROKER
+            - FACTORY_MANAGER
+            - PUBLIC
+          example: BROKER
+        companyName:
+          type: string
+          description: |
+            Name of the company or factory the user is associated with.
+            For PUBLIC buyers this field can be null or empty.
+          example: Pars Steel Company
+          maxLength: 128
+          minLength: 0
+      required:
+        - fullName
+        - password
+        - phoneNumber
+    RegisterResponse:
+      type: object
+      description: Response returned after starting the self-service registration flow.
+      properties:
+        registrationId:
+          type: integer
+          format: int64
+          description: Internal registration identifier used for OTP verification.
+          example: 1001
+        status:
+          type: string
+          description: Registration status indicator.
+          example: OTP_SENT
+        message:
+          type: string
+          description: Human-readable message for the client.
+          example: OTP code has been sent to your phone number.
+    PasswordResetRequestDto:
+      type: object
+      description: Payload to request an OTP for password reset.
+      properties:
+        phoneNumber:
+          type: string
+          description: User's phone number.
+          example: '+989121234567'
+          minLength: 1
+      required:
+        - phoneNumber
+    PasswordResetStartResponse:
+      type: object
+      description: Response after starting the password reset flow.
+      properties:
+        status:
+          type: string
+          description: Status of the operation.
+          example: OTP_SENT
+        message:
+          type: string
+          description: Generic message to avoid user enumeration.
+          example: If an account exists for this phone number, a reset code has been sent.
+    PasswordResetConfirmRequest:
+      type: object
+      description: Payload to confirm password reset using OTP.
+      properties:
+        phoneNumber:
+          type: string
+          description: User's phone number.
+          example: '+989121234567'
+          minLength: 1
+        code:
+          type: string
+          description: OTP code for password reset.
+          example: 123456
+          minLength: 1
+        newPassword:
+          type: string
+          description: New password chosen by the user.
+          example: MyNewSecureP@ssw0rd
+          maxLength: 128
+          minLength: 6
+      required:
+        - code
+        - newPassword
+        - phoneNumber
+    PasswordResetConfirmResponse:
+      type: object
+      description: Response after successfully updating the user's password.
+      properties:
+        status:
+          type: string
+          description: Status of the operation.
+          example: SUCCESS
+        message:
+          type: string
+          description: Human-readable message.
+          example: Your password has been updated successfully.
+    OtpLoginVerifyRequest:
+      type: object
+      description: Payload to verify OTP and complete passwordless login.
+      properties:
+        phoneNumber:
+          type: string
+          description: User's phone number used to request the OTP.
+          example: '+989121234567'
+          minLength: 1
+        code:
+          type: string
+          description: OTP code sent to the phone.
+          example: 123456
+          minLength: 1
+      required:
+        - code
+        - phoneNumber
+    OtpLoginVerifyResponse:
+      type: object
+      description: Response after successful passwordless login.
+      properties:
+        status:
+          type: string
+          description: Status of the login operation.
+          example: SUCCESS
+        message:
+          type: string
+          description: Human-readable message.
+          example: Login successful.
+        tokens:
+          $ref: '#/components/schemas/TokenResponse'
+          description: Structured tokens object returned by the Authorization Server.
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        token_type:
+          type: string
+        expires_in:
+          type: integer
+          format: int64
+        scope:
+          type: string
+    OtpLoginRequest:
+      type: object
+      description: Payload to request an OTP for passwordless login.
+      properties:
+        phoneNumber:
+          type: string
+          description: User's phone number.
+          example: '+989121234567'
+          minLength: 1
+      required:
+        - phoneNumber
+    OtpLoginStartResponse:
+      type: object
+      description: Response after starting the passwordless login flow.
+      properties:
+        status:
+          type: string
+          description: Status of the operation.
+          example: OTP_SENT
+        message:
+          type: string
+          description: Generic message to avoid user enumeration.
+          example: If an account exists for this phone number, an OTP has been sent.
+    ApproveResponse:
+      type: object
+      description: Represents the result of a successful user approval operation.
+      properties:
+        userId:
+          type: string
+          description: External identifier of the user in the User bounded context.
+          example: usr_123456789
+        username:
+          type: string
+          description: Username used for authentication, typically the user's phone number.
+          example: '+989121234567'
+        buyerType:
+          type: string
+          description: Business buyer type assigned to the user (e.g. BROKER, FACTORY_MANAGER, PUBLIC).
+          example: BROKER
+        status:
+          type: string
+          description: Approval status after this operation. Will be 'APPROVED' on success.
+          example: APPROVED
+    CreateOrderRequest:
+      type: object
+      properties:
+        orderNumber:
+          type: string
+          minLength: 1
+        productCode:
+          type: string
+          minLength: 1
+        quantity:
+          type: integer
+          format: int32
+          minimum: 1
+      required:
+        - orderNumber
+        - productCode
+    CreateOrderResponse:
+      type: object
+      properties:
+        orderId:
+          type: integer
+          format: int64
+        status:
+          type: string
+    CreateCartResponse:
+      type: object
+      description: Response returned when a new cart is created (guest or user-bound).
+      properties:
+        cartId:
+          type: string
+          description: Unique identifier of the cart. Front-end must keep this (e.g. cookie, localStorage).
+          example: c76bf9c3-7f44-4d3d-b0ad-1f2e1b4c3aaf
+        userId:
+          type: string
+          description: External user ID this cart is bound to, if any. For guest carts this is null.
+          example: usr_123456
+        buyerType:
+          type: string
+          description: Buyer type of the user this cart belongs to. Null for pure guest carts.
+          enum:
+            - BROKER
+            - FACTORY_MANAGER
+            - PUBLIC
+          example: FACTORY_MANAGER
+    AddItemRequest:
+      type: object
+      description: Payload for adding a new item into a cart.
+      properties:
+        cartId:
+          type: string
+          description: Target cart identifier.
+          example: c76bf9c3-7f44-4d3d-b0ad-1f2e1b4c3aaf
+          minLength: 1
+        productBatchId:
+          type: integer
+          format: int64
+          description: ID of the ProductBatch being added to the cart.
+          example: 1303
+        quantity:
+          type: integer
+          format: int32
+          description: Desired quantity in the batch sales unit.
+          example: 5
+      required:
+        - cartId
+        - productBatchId
+    CheckoutRequest:
+      type: object
+      description: Payload for checking out a cart and turning it into an order.
+      properties:
+        cartId:
+          type: string
+          description: Cart identifier to be checked out.
+          example: c76bf9c3-7f44-4d3d-b0ad-1f2e1b4c3aaf
+          minLength: 1
+        paymentType:
+          type: string
+          description: Selected payment type for this cart.
+          enum:
+            - ONLINE
+            - BANK_TRANSFER
+            - INSTALLMENT
+          example: INSTALLMENT
+      required:
+        - cartId
+        - paymentType
+    CheckoutResponse:
+      type: object
+      description: Response returned after a successful checkout.
+      properties:
+        orderId:
+          type: integer
+          format: int64
+          description: Identifier of the created order.
+          example: 98765
+        cartId:
+          type: string
+          description: Cart identifier that was checked out.
+          example: c76bf9c3-7f44-4d3d-b0ad-1f2e1b4c3aaf
+    UpdateRiskRequest:
+      type: object
+      description: Request to update risk profile and buyer approval.
+      properties:
+        insuranceCovered:
+          type: boolean
+          description: Whether the shipment is insured.
+          example: true
+        continuousSupply:
+          type: boolean
+          description: Whether supply is continuous for this product.
+          example: false
+        buyerApproved:
+          type: boolean
+          description: Whether the batch has been approved by the buyer.
+          example: false
+    UpdateQuantitiesRequest:
+      type: object
+      description: Request to update total and available quantities and container counts.
+      properties:
+        totalQuantity:
+          type: number
+          description: Total supplied quantity.
+          example: 200
+          minimum: 0
+        availableQuantity:
+          type: number
+          description: Remaining sellable quantity.
+          example: 120
+          minimum: 0
+        containerCount:
+          type: integer
+          format: int32
+          description: Total number of containers.
+          example: 10
+        availableContainerCount:
+          type: integer
+          format: int32
+          description: Number of available containers.
+          example: 6
+    UpdateQualityRequest:
+      type: object
+      description: Request to update quality and packaging information of the batch.
+      properties:
+        qualityStatus:
+          type: string
+          description: Quality status of the batch.
+          enum:
+            - UNKNOWN
+            - A
+            - B
+            - C
+            - REJECTED
+          example: A
+        colorStatus:
+          type: string
+          description: Color/consistency status.
+          enum:
+            - UNKNOWN
+            - UNIFORM
+            - MIXED
+          example: UNIFORM
+        containerPackaging:
+          type: string
+          description: Packaging type.
+          example: Jumbo Bag
+        customsCode:
+          type: string
+          description: Customs tariff code (HS Code).
+          example: 72072090
+    UpdatePaymentInfoRequest:
+      type: object
+      description: Request to update payment options supported for this batch.
+      properties:
+        byOnlinePayment:
+          type: boolean
+          description: Whether online payment is supported for this batch.
+          example: true
+        byBankTransfer:
+          type: boolean
+          description: Whether bank transfer is supported for this batch.
+          example: true
+        byInstallment:
+          type: boolean
+          description: Whether installment-based payments are supported.
+          example: false
+    UpdateMilestonesRequest:
+      type: object
+      description: Request to update batch milestones in one shot. All dates are Solar/Jalali strings formatted as yyyy/MM/dd.
+      properties:
+        orderInvoiceIssued:
+          type: boolean
+          description: Whether the commercial invoice for this batch has been issued.
+          example: true
+        solarOrderInvoiceIssuedDate:
+          type: string
+          description: Solar (Jalali) date when the order invoice was issued (yyyy/MM/dd).
+          example: 1403/01/15
+        investmentCompleted:
+          type: boolean
+          description: Whether the full investment for this batch has been completed.
+          example: true
+        salesAndDistribution:
+          type: boolean
+          description: Whether the batch has entered the sales and distribution phase.
+          example: false
+        arrivedAtPort:
+          type: boolean
+          description: Whether the shipment has arrived at the destination port.
+          example: false
+        productionStarted:
+          type: boolean
+          description: Whether production has started for this batch.
+          example: true
+        containerDeparted:
+          type: boolean
+          description: Whether the container has departed from the origin port.
+          example: false
+        roiReach:
+          type: boolean
+          description: Whether the expected ROI threshold for this batch has been reached.
+          example: false
+        solarInvestmentCompletedDate:
+          type: string
+          description: Solar (Jalali) date when the investment was fully completed (yyyy/MM/dd).
+          example: 1403/02/01
+        solarProductionStartedDate:
+          type: string
+          description: Solar (Jalali) date when production started (yyyy/MM/dd).
+          example: 1403/02/10
+        solarContainerDepartedDate:
+          type: string
+          description: Solar (Jalali) date when the container departed (yyyy/MM/dd).
+          example: 1403/02/20
+        solarArrivedAtPortDate:
+          type: string
+          description: Solar (Jalali) date when the shipment arrived at the port (yyyy/MM/dd).
+          example: 1403/02/25
+        solarSalesAndDistributionDate:
+          type: string
+          description: Solar (Jalali) date when sales and distribution started (yyyy/MM/dd).
+          example: 1403/03/01
+        solarRoiReachDate:
+          type: string
+          description: Solar (Jalali) date when the ROI target was reached (yyyy/MM/dd).
+          example: 1403/04/15
+    UpdateDatesRequest:
+      type: object
+      description: Request to update logistics dates (exit, shipping, delivery). All dates are Solar/Jalali strings formatted as yyyy/MM/dd.
+      properties:
+        solarExitDate:
+          type: string
+          description: Exit date from origin (Solar/Jalali yyyy/MM/dd).
+          example: 1404/01/15
+        solarShippingDate:
+          type: string
+          description: Shipping/loading date (Solar/Jalali yyyy/MM/dd).
+          example: 1404/01/20
+        solarDeliveryDate:
+          type: string
+          description: Final delivery date (Solar/Jalali yyyy/MM/dd).
+          example: 1404/02/01
+    UpdateCoreInfoRequest:
+      type: object
+      description: Request to update core batch properties (name, brand, status, unit, currency, min order, unit price).
+      properties:
+        productName:
+          type: string
+          description: Display name of the product.
+          example: Steel Sheet ST52 10mm
+        brandName:
+          type: string
+          description: Brand/manufacturer name.
+          example: Mobarakeh Steel
+        status:
+          type: string
+          description: Current status of the batch.
+          enum:
+            - SUPPLYING
+            - SHIPPING
+            - DELIVERING
+            - WAREHOUSED
+          example: SUPPLYING
+        unit:
+          type: string
+          description: Sales unit.
+          enum:
+            - TON
+            - KILOGRAM
+            - GRAM
+            - LITER
+            - PIECE
+          example: TON
+        currency:
+          type: string
+          description: Pricing currency.
+          enum:
+            - TOMAN
+            - RIAL
+            - USD
+            - EUR
+          example: TOMAN
+        minOrderQuantity:
+          type: number
+          description: Minimum order quantity.
+          example: 25
+          minimum: 0
+        unitPrice:
+          type: number
+          description: Unit price.
+          example: 48000000
+          minimum: 0
+    UserResponse:
+      type: object
+      description: Basic profile information for the currently authenticated user.
+      properties:
+        phoneNumber:
+          type: string
+          description: User's phone number used as username.
+          example: '+989121234567'
+        fullName:
+          type: string
+          description: Full name of the user.
+          example: Ali Ahmadi
+        companyName:
+          type: string
+          description: Name of the company / factory associated with the user.
+          example: Pars Steel Company
+        approvalStatus:
+          type: string
+          description: Approval status in the User domain.
+          enum:
+            - PENDING_APPROVAL
+            - APPROVED
+            - REJECTED
+          example: APPROVED
+        buyerType:
+          type: string
+          description: Business buyer type associated with the user.
+          enum:
+            - BROKER
+            - FACTORY_MANAGER
+            - PUBLIC
+          example: BROKER
+        active:
+          type: boolean
+          description: Indicates if the user account is active.
+          example: true
+    ProductSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        mainImageUrl:
+          type: string
+        thumbnailImageUrl:
+          type: string
+        categoryIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+          uniqueItems: true
+    ProductBatchSummaryResponse:
+      type: object
+      description: Summary view of a product batch used for listing and cards in product batch UI.
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 'Unique identifier of the batch. In UI you can show it as #id.'
+          example: 1303
+        productCode:
+          type: string
+          description: Product code (for linking to Product module).
+          example: PRD-2025-001
+        productName:
+          type: string
+          description: Product name / card title.
+          example: Robusta Coffee Beans Grade AA
+        brandName:
+          type: string
+          description: Brand / manufacturer name.
+          example: Brand X
+        categoryIds:
+          type: array
+          description: Category IDs associated with this batch (used for filters / tags).
+          items:
+            type: integer
+            format: int64
+          uniqueItems: true
+        productImageUrl:
+          type: string
+          description: URL of main product image to show on the batch card.
+        minOrderQuantity:
+          type: number
+          description: Minimum order quantity in the sales unit.
+          example: 500
+        unit:
+          type: string
+          description: Sales unit (e.g. KILOGRAM, TON).
+          enum:
+            - TON
+            - KILOGRAM
+            - GRAM
+            - LITER
+            - PIECE
+          example: KILOGRAM
+        status:
+          type: string
+          description: Current status of the batch, e.g. 'SUPPLYING'.
+          enum:
+            - SUPPLYING
+            - SHIPPING
+            - DELIVERING
+            - WAREHOUSED
+          example: SUPPLYING
+        solarExitDate:
+          type: string
+          description: Exit date displayed on the card (Solar/Jalali yyyy/MM/dd).
+          example: 1404/05/10
+        solarShippingDate:
+          type: string
+          description: Shipping date displayed on the card (Solar/Jalali yyyy/MM/dd).
+          example: 1404/05/20
+        solarDeliveryDate:
+          type: string
+          description: Delivery date displayed on the card (Solar/Jalali yyyy/MM/dd).
+          example: 1404/06/08
+        currency:
+          type: string
+          description: Currency used for pricing.
+          enum:
+            - TOMAN
+            - RIAL
+            - USD
+            - EUR
+          example: TOMAN
+        unitPrice:
+          type: number
+          description: Pre-purchase price per unit (used in text like 'pre-purchase price per ton').
+          example: 50000000
+        soldPercent:
+          type: integer
+          format: int32
+          description: Percentage of total volume that has been sold (0â€“100).
+          example: 75
+        remainingDays:
+          type: integer
+          format: int64
+          description: |
+            Number of days remaining until the main logistics date (exit/shipping/delivery).
+            Used for text like '10 days remaining'.
+            If the date is in the past, 0 is returned.
+          example: 10
+    RemoveGalleryImageRequest:
+      type: object
+      description: Payload for removing a single gallery image from a product by URL.
+      properties:
+        imageUrl:
+          type: string
+          description: Exact URL of the gallery image to remove.
+          example: /static/images/products/PRD-2025-STEEL-001/gallery/img1.jpg
+      required:
+        - imageUrl
+    RemoveItemRequest:
+      type: object
+      description: Payload for removing an item from a cart.
+      properties:
+        cartId:
+          type: string
+          description: Target cart identifier.
+          example: c76bf9c3-7f44-4d3d-b0ad-1f2e1b4c3aaf
+          minLength: 1
+        productBatchId:
+          type: integer
+          format: int64
+          description: ID of the ProductBatch to remove from the cart.
+          example: 1303
+      required:
+        - cartId
+        - productBatchId
