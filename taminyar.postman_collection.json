@@ -1,0 +1,1283 @@
+{
+	"info": {
+		"_postman_id": "e61fbec5-1ab4-4a86-bf18-7fe8fedd3bce",
+		"name": "taminyar",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37897813"
+	},
+	"item": [
+		{
+			"name": "register user",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"fullName\": \"Ali Ahmadi\",\n  \"password\": \"MySecureP@ssw0rd\",\n  \"phoneNumber\": \"+989121234511\",\n  \"buyerType\": \"BROKER\",\n  \"companyName\": \"Pars Steel Company\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/bff/auth/register",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"bff",
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "register otp verify",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"registrationId\": 24,\n  \"code\": \"123456\",\n  \"phoneNumber\": \"+989121234529\",\n  \"password\": \"MySecureP@ssw0rd\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/bff/auth/verify-otp",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"bff",
+						"auth",
+						"verify-otp"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "me",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/bff/auth/me",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"bff",
+						"auth",
+						"me"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login otp",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"phoneNumber\": \"+989121234520\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/bff/auth/login/otp/request",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"bff",
+						"auth",
+						"login",
+						"otp",
+						"request"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login otp verify",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"phoneNumber\": \"+989121234520\",\n  \"code\": \"123456\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/bff/auth/login/otp/verify",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"bff",
+						"auth",
+						"login",
+						"otp",
+						"verify"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "password reset request",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"phoneNumber\": \"+989121234520\",\n  \"code\": \"123456\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/bff/auth/password/reset/request",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"bff",
+						"auth",
+						"password",
+						"reset",
+						"request"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "password reset confirm",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"phoneNumber\": \"+989121234520\",\n  \"code\": \"123456\",\n  \"newPassword\": \"MyNewSecureP@ssw0rd\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/bff/auth/password/reset/confirm",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"bff",
+						"auth",
+						"password",
+						"reset",
+						"confirm"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "phoneNumber-password login",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"phoneNumber\": \"+989120000002\",\n  \"password\": \"MySecurePassword@123\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/bff/auth/login",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"bff",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "main categories",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"phoneNumber\": \"+989121234520\",\n  \"code\": \"123456\",\n  \"newPassword\": \"MyNewSecureP@ssw0rd\"\n}"
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/api/categories/main",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"categories",
+						"main"
+					],
+					"query": [
+						{
+							"key": "type",
+							"value": "MAIN",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "sub categories",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"phoneNumber\": \"+989121234520\",\n  \"code\": \"123456\",\n  \"newPassword\": \"MyNewSecureP@ssw0rd\"\n}"
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/api/categories/sub",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"categories",
+						"sub"
+					],
+					"query": [
+						{
+							"key": "type",
+							"value": "MAIN",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "brands",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/api/categories/brand",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"categories",
+						"brand"
+					],
+					"query": [
+						{
+							"key": "type",
+							"value": "MAIN",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create sub category",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiI5NzQ0YWFmMy02ZTE5LTQ0ODgtODYyYi02M2MwYjBhYzc0NjkiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MDQzODA4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MTMwMjA4LCJpYXQiOjE3NjUwNDM4MDgsImp0aSI6IjQwOGY4NTY2LTQ1NGYtNGQxNi04NTYxLTY3ODdjZGVlM2Y5ZCJ9.f593wGIRpQueu5Uh4CI2ZwXlvaBytA-8i4ge4e4-mE8djncqb-e-CLkfzX877H7NBmCFTy-NiajXV5bMJNu1ow0pcOmlFKFn3jsw08IvWUx7KcrCy8VL7RQP36FHOzl-PX5y00MqXLo-tlThMkSNl9RcMph3oBVuQn4B4U8hO_qxAGxInDs9B_ogWQQfeKUXXaXtPtbDp6yRHwnMlQumfGbQaejVkchl921x1aq-LeauGX8AbE-MnLOoFOyTtg_lyyNsxGInwsQMfKLbhhrOdh7DHW3qdFcV3py2OH1BjiDRihJ0kdG_oNP0eQP2gyNyw0lnOEQ7h7VmJI_FX5dS_g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"sub cat 1\",\n  \"description\": \"test................\",\n  \"relatedCategoryIds\": []\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/api/admin/categories/sub",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"admin",
+						"categories",
+						"sub"
+					],
+					"query": [
+						{
+							"key": "type",
+							"value": "MAIN",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create brand",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"brand 1\",\n  \"description\": \"test................\",\n  \"relatedCategoryIds\": [1, 4]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/api/admin/categories/brand",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"admin",
+						"categories",
+						"brand"
+					],
+					"query": [
+						{
+							"key": "type",
+							"value": "MAIN",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create main category",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiI5NzQ0YWFmMy02ZTE5LTQ0ODgtODYyYi02M2MwYjBhYzc0NjkiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MDQzODA4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MTMwMjA4LCJpYXQiOjE3NjUwNDM4MDgsImp0aSI6IjQwOGY4NTY2LTQ1NGYtNGQxNi04NTYxLTY3ODdjZGVlM2Y5ZCJ9.f593wGIRpQueu5Uh4CI2ZwXlvaBytA-8i4ge4e4-mE8djncqb-e-CLkfzX877H7NBmCFTy-NiajXV5bMJNu1ow0pcOmlFKFn3jsw08IvWUx7KcrCy8VL7RQP36FHOzl-PX5y00MqXLo-tlThMkSNl9RcMph3oBVuQn4B4U8hO_qxAGxInDs9B_ogWQQfeKUXXaXtPtbDp6yRHwnMlQumfGbQaejVkchl921x1aq-LeauGX8AbE-MnLOoFOyTtg_lyyNsxGInwsQMfKLbhhrOdh7DHW3qdFcV3py2OH1BjiDRihJ0kdG_oNP0eQP2gyNyw0lnOEQ7h7VmJI_FX5dS_g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"main 1\",\n  \"description\": \"test................\",\n  \"relatedCategoryIds\": [4]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/api/admin/categories/main",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"admin",
+						"categories",
+						"main"
+					],
+					"query": [
+						{
+							"key": "type",
+							"value": "MAIN",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update category info",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiI5NzQ0YWFmMy02ZTE5LTQ0ODgtODYyYi02M2MwYjBhYzc0NjkiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MDQzODA4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MTMwMjA4LCJpYXQiOjE3NjUwNDM4MDgsImp0aSI6IjQwOGY4NTY2LTQ1NGYtNGQxNi04NTYxLTY3ODdjZGVlM2Y5ZCJ9.f593wGIRpQueu5Uh4CI2ZwXlvaBytA-8i4ge4e4-mE8djncqb-e-CLkfzX877H7NBmCFTy-NiajXV5bMJNu1ow0pcOmlFKFn3jsw08IvWUx7KcrCy8VL7RQP36FHOzl-PX5y00MqXLo-tlThMkSNl9RcMph3oBVuQn4B4U8hO_qxAGxInDs9B_ogWQQfeKUXXaXtPtbDp6yRHwnMlQumfGbQaejVkchl921x1aq-LeauGX8AbE-MnLOoFOyTtg_lyyNsxGInwsQMfKLbhhrOdh7DHW3qdFcV3py2OH1BjiDRihJ0kdG_oNP0eQP2gyNyw0lnOEQ7h7VmJI_FX5dS_g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"updated 1\",\n  \"description\": \"updated desc....\",\n  \"relatedCategoryIds\": [4, 10, 3]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/api/admin/categories/15",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"admin",
+						"categories",
+						"15"
+					],
+					"query": [
+						{
+							"key": "type",
+							"value": "MAIN",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add image for category",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiI5NzQ0YWFmMy02ZTE5LTQ0ODgtODYyYi02M2MwYjBhYzc0NjkiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MDQzODA4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MTMwMjA4LCJpYXQiOjE3NjUwNDM4MDgsImp0aSI6IjQwOGY4NTY2LTQ1NGYtNGQxNi04NTYxLTY3ODdjZGVlM2Y5ZCJ9.f593wGIRpQueu5Uh4CI2ZwXlvaBytA-8i4ge4e4-mE8djncqb-e-CLkfzX877H7NBmCFTy-NiajXV5bMJNu1ow0pcOmlFKFn3jsw08IvWUx7KcrCy8VL7RQP36FHOzl-PX5y00MqXLo-tlThMkSNl9RcMph3oBVuQn4B4U8hO_qxAGxInDs9B_ogWQQfeKUXXaXtPtbDp6yRHwnMlQumfGbQaejVkchl921x1aq-LeauGX8AbE-MnLOoFOyTtg_lyyNsxGInwsQMfKLbhhrOdh7DHW3qdFcV3py2OH1BjiDRihJ0kdG_oNP0eQP2gyNyw0lnOEQ7h7VmJI_FX5dS_g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/Users/amir/Downloads/Unknown.jpeg"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/api/admin/categories/15/image",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"admin",
+						"categories",
+						"15",
+						"image"
+					],
+					"query": [
+						{
+							"key": "type",
+							"value": "MAIN",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete category image",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiI5NzQ0YWFmMy02ZTE5LTQ0ODgtODYyYi02M2MwYjBhYzc0NjkiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MDQzODA4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MTMwMjA4LCJpYXQiOjE3NjUwNDM4MDgsImp0aSI6IjQwOGY4NTY2LTQ1NGYtNGQxNi04NTYxLTY3ODdjZGVlM2Y5ZCJ9.f593wGIRpQueu5Uh4CI2ZwXlvaBytA-8i4ge4e4-mE8djncqb-e-CLkfzX877H7NBmCFTy-NiajXV5bMJNu1ow0pcOmlFKFn3jsw08IvWUx7KcrCy8VL7RQP36FHOzl-PX5y00MqXLo-tlThMkSNl9RcMph3oBVuQn4B4U8hO_qxAGxInDs9B_ogWQQfeKUXXaXtPtbDp6yRHwnMlQumfGbQaejVkchl921x1aq-LeauGX8AbE-MnLOoFOyTtg_lyyNsxGInwsQMfKLbhhrOdh7DHW3qdFcV3py2OH1BjiDRihJ0kdG_oNP0eQP2gyNyw0lnOEQ7h7VmJI_FX5dS_g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/api/admin/categories/15/image",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"admin",
+						"categories",
+						"15",
+						"image"
+					],
+					"query": [
+						{
+							"key": "type",
+							"value": "MAIN",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "category",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/api/categories?type=MAIN&id=15",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"categories"
+					],
+					"query": [
+						{
+							"key": "type",
+							"value": "MAIN"
+						},
+						{
+							"key": "id",
+							"value": "15"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "product create",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiIwZDc4YWJkNi0zNDBmLTQwZjktYTUwYy0yYmM5ZDNhMDRkNDciLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MTM0MzY4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MjIwNzY4LCJpYXQiOjE3NjUxMzQzNjgsImp0aSI6ImY2MDM5NmUzLTgxZmYtNGUyYS04YjA0LTExNjEzZjc4MTg4NyJ9.vV_uhuueh33tg1KkE3JjWblPbX5MGCcsWm-1zQXduqP4hLXG_hG95YhqNIOpVgoyaidPva9nvxCkUCxsv1PwtQYsX-4aJAfMlUZ1o5-sGgLWwFKrApd0f2TiSWfyl9Ho5tcHmA7f1lWMITSiAb0JzAFXfttnaP2gPCe0nOoyaqrG4smFE2JqSnUV_xECL0gEGx-jyoaisLnOTpwS3oU-MG9cxLH0AEnm6QW8DPsrzsqD8PZ_4sgO6UvPFkfc_qanQfv1cBRmU2WjjmG5I8npjD3pNxtXP4GR4T7sb3guNCgUG32uxkTpW8g5rbC6iz0WwDdsXD1fGAHhrCIy90uL6A",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"code\": \"PRD-2025-STEEL-009\",\n  \"name\": \"Hot Rolled Steel Sheet ST37\",\n  \"description\": \"High quality hot rolled steel sheet suitable for construction and fabrication.\",\n  \"sku\": \"ST37-HR-4MM\",\n  \"customsCode\": \"72072090\",\n  \"categoryIds\": [\n    1,\n    5,\n    12\n  ],\n  \"mainImageUrl\": \"/static/images/products/PRD-2025-STEEL-001/main/PRD-2025-STEEL-001_xxx.jpg\",\n  \"thumbnailImageUrl\": \"/static/images/products/PRD-2025-STEEL-001/thumbnail/PRD-2025-STEEL-001_xxx.jpg\",\n  \"galleryImageUrls\": [\n    \"/static/images/products/PRD-2025-STEEL-001/gallery/img1.jpg\"\n  ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/api/products",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "product Gallery Image Create",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiI5NzQ0YWFmMy02ZTE5LTQ0ODgtODYyYi02M2MwYjBhYzc0NjkiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MDQzODA4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MTMwMjA4LCJpYXQiOjE3NjUwNDM4MDgsImp0aSI6IjQwOGY4NTY2LTQ1NGYtNGQxNi04NTYxLTY3ODdjZGVlM2Y5ZCJ9.f593wGIRpQueu5Uh4CI2ZwXlvaBytA-8i4ge4e4-mE8djncqb-e-CLkfzX877H7NBmCFTy-NiajXV5bMJNu1ow0pcOmlFKFn3jsw08IvWUx7KcrCy8VL7RQP36FHOzl-PX5y00MqXLo-tlThMkSNl9RcMph3oBVuQn4B4U8hO_qxAGxInDs9B_ogWQQfeKUXXaXtPtbDp6yRHwnMlQumfGbQaejVkchl921x1aq-LeauGX8AbE-MnLOoFOyTtg_lyyNsxGInwsQMfKLbhhrOdh7DHW3qdFcV3py2OH1BjiDRihJ0kdG_oNP0eQP2gyNyw0lnOEQ7h7VmJI_FX5dS_g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "files",
+							"type": "file",
+							"src": "/Users/amir/Downloads/Unknown.jpeg"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/api/products/PRD-2025-STEEL-008/images/gallery",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"products",
+						"PRD-2025-STEEL-008",
+						"images",
+						"gallery"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "product THUMBNAIL Image Create",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiI5NzQ0YWFmMy02ZTE5LTQ0ODgtODYyYi02M2MwYjBhYzc0NjkiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MDQzODA4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MTMwMjA4LCJpYXQiOjE3NjUwNDM4MDgsImp0aSI6IjQwOGY4NTY2LTQ1NGYtNGQxNi04NTYxLTY3ODdjZGVlM2Y5ZCJ9.f593wGIRpQueu5Uh4CI2ZwXlvaBytA-8i4ge4e4-mE8djncqb-e-CLkfzX877H7NBmCFTy-NiajXV5bMJNu1ow0pcOmlFKFn3jsw08IvWUx7KcrCy8VL7RQP36FHOzl-PX5y00MqXLo-tlThMkSNl9RcMph3oBVuQn4B4U8hO_qxAGxInDs9B_ogWQQfeKUXXaXtPtbDp6yRHwnMlQumfGbQaejVkchl921x1aq-LeauGX8AbE-MnLOoFOyTtg_lyyNsxGInwsQMfKLbhhrOdh7DHW3qdFcV3py2OH1BjiDRihJ0kdG_oNP0eQP2gyNyw0lnOEQ7h7VmJI_FX5dS_g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/Users/amir/Downloads/Unknown.jpeg"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/api/products/PRD-2025-STEEL-008/image/thumbnail",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"products",
+						"PRD-2025-STEEL-008",
+						"image",
+						"thumbnail"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "product Main Image Create",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiI5NzQ0YWFmMy02ZTE5LTQ0ODgtODYyYi02M2MwYjBhYzc0NjkiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MDQzODA4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MTMwMjA4LCJpYXQiOjE3NjUwNDM4MDgsImp0aSI6IjQwOGY4NTY2LTQ1NGYtNGQxNi04NTYxLTY3ODdjZGVlM2Y5ZCJ9.f593wGIRpQueu5Uh4CI2ZwXlvaBytA-8i4ge4e4-mE8djncqb-e-CLkfzX877H7NBmCFTy-NiajXV5bMJNu1ow0pcOmlFKFn3jsw08IvWUx7KcrCy8VL7RQP36FHOzl-PX5y00MqXLo-tlThMkSNl9RcMph3oBVuQn4B4U8hO_qxAGxInDs9B_ogWQQfeKUXXaXtPtbDp6yRHwnMlQumfGbQaejVkchl921x1aq-LeauGX8AbE-MnLOoFOyTtg_lyyNsxGInwsQMfKLbhhrOdh7DHW3qdFcV3py2OH1BjiDRihJ0kdG_oNP0eQP2gyNyw0lnOEQ7h7VmJI_FX5dS_g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/Users/amir/Downloads/Unknown.jpeg"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/api/products/PRD-2025-STEEL-008/image/main",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"products",
+						"PRD-2025-STEEL-008",
+						"image",
+						"main"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "product Update",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiI5NzQ0YWFmMy02ZTE5LTQ0ODgtODYyYi02M2MwYjBhYzc0NjkiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MDQzODA4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MTMwMjA4LCJpYXQiOjE3NjUwNDM4MDgsImp0aSI6IjQwOGY4NTY2LTQ1NGYtNGQxNi04NTYxLTY3ODdjZGVlM2Y5ZCJ9.f593wGIRpQueu5Uh4CI2ZwXlvaBytA-8i4ge4e4-mE8djncqb-e-CLkfzX877H7NBmCFTy-NiajXV5bMJNu1ow0pcOmlFKFn3jsw08IvWUx7KcrCy8VL7RQP36FHOzl-PX5y00MqXLo-tlThMkSNl9RcMph3oBVuQn4B4U8hO_qxAGxInDs9B_ogWQQfeKUXXaXtPtbDp6yRHwnMlQumfGbQaejVkchl921x1aq-LeauGX8AbE-MnLOoFOyTtg_lyyNsxGInwsQMfKLbhhrOdh7DHW3qdFcV3py2OH1BjiDRihJ0kdG_oNP0eQP2gyNyw0lnOEQ7h7VmJI_FX5dS_g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"code\": \"PRD-2025-STEEL-008\",\n  \"name\": \"Hot Rolled Steel Sheet ST37\",\n  \"description\": \"High quality hot rolled steel sheet suitable for construction and fabrication.\",\n  \"sku\": \"ST37-HR-4MM\",\n  \"customsCode\": \"72072090\",\n  \"categoryIds\": [\n    1,\n    5,\n    12\n  ],\n  \"mainImageUrl\": \"/static/images/products/PRD-2025-STEEL-001/main/PRD-2025-STEEL-001_xxx.jpg\",\n  \"thumbnailImageUrl\": \"/static/images/products/PRD-2025-STEEL-001/thumbnail/PRD-2025-STEEL-001_xxx.jpg\",\n  \"galleryImageUrls\": [\n    \"/static/images/products/PRD-2025-STEEL-001/gallery/img1.jpg\"\n  ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/api/products/PRD-2025-STEEL-008",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"products",
+						"PRD-2025-STEEL-008"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "product Delete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiI5NzQ0YWFmMy02ZTE5LTQ0ODgtODYyYi02M2MwYjBhYzc0NjkiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MDQzODA4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MTMwMjA4LCJpYXQiOjE3NjUwNDM4MDgsImp0aSI6IjQwOGY4NTY2LTQ1NGYtNGQxNi04NTYxLTY3ODdjZGVlM2Y5ZCJ9.f593wGIRpQueu5Uh4CI2ZwXlvaBytA-8i4ge4e4-mE8djncqb-e-CLkfzX877H7NBmCFTy-NiajXV5bMJNu1ow0pcOmlFKFn3jsw08IvWUx7KcrCy8VL7RQP36FHOzl-PX5y00MqXLo-tlThMkSNl9RcMph3oBVuQn4B4U8hO_qxAGxInDs9B_ogWQQfeKUXXaXtPtbDp6yRHwnMlQumfGbQaejVkchl921x1aq-LeauGX8AbE-MnLOoFOyTtg_lyyNsxGInwsQMfKLbhhrOdh7DHW3qdFcV3py2OH1BjiDRihJ0kdG_oNP0eQP2gyNyw0lnOEQ7h7VmJI_FX5dS_g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/api/products/PRD-2025-STEEL-007",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"products",
+						"PRD-2025-STEEL-007"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "product GalleryImage",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiI5NzQ0YWFmMy02ZTE5LTQ0ODgtODYyYi02M2MwYjBhYzc0NjkiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MDQzODA4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MTMwMjA4LCJpYXQiOjE3NjUwNDM4MDgsImp0aSI6IjQwOGY4NTY2LTQ1NGYtNGQxNi04NTYxLTY3ODdjZGVlM2Y5ZCJ9.f593wGIRpQueu5Uh4CI2ZwXlvaBytA-8i4ge4e4-mE8djncqb-e-CLkfzX877H7NBmCFTy-NiajXV5bMJNu1ow0pcOmlFKFn3jsw08IvWUx7KcrCy8VL7RQP36FHOzl-PX5y00MqXLo-tlThMkSNl9RcMph3oBVuQn4B4U8hO_qxAGxInDs9B_ogWQQfeKUXXaXtPtbDp6yRHwnMlQumfGbQaejVkchl921x1aq-LeauGX8AbE-MnLOoFOyTtg_lyyNsxGInwsQMfKLbhhrOdh7DHW3qdFcV3py2OH1BjiDRihJ0kdG_oNP0eQP2gyNyw0lnOEQ7h7VmJI_FX5dS_g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"imageUrl\": \"/static/images/products/PRD-2025-STEEL-008/gallery/product_PRD-2025-STEEL-008_20251206T190941.409816Z_60e43e0d.jpg\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/api/products/PRD-2025-STEEL-008/images/gallery",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"products",
+						"PRD-2025-STEEL-008",
+						"images",
+						"gallery"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "product MainImage",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiI5NzQ0YWFmMy02ZTE5LTQ0ODgtODYyYi02M2MwYjBhYzc0NjkiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MDQzODA4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MTMwMjA4LCJpYXQiOjE3NjUwNDM4MDgsImp0aSI6IjQwOGY4NTY2LTQ1NGYtNGQxNi04NTYxLTY3ODdjZGVlM2Y5ZCJ9.f593wGIRpQueu5Uh4CI2ZwXlvaBytA-8i4ge4e4-mE8djncqb-e-CLkfzX877H7NBmCFTy-NiajXV5bMJNu1ow0pcOmlFKFn3jsw08IvWUx7KcrCy8VL7RQP36FHOzl-PX5y00MqXLo-tlThMkSNl9RcMph3oBVuQn4B4U8hO_qxAGxInDs9B_ogWQQfeKUXXaXtPtbDp6yRHwnMlQumfGbQaejVkchl921x1aq-LeauGX8AbE-MnLOoFOyTtg_lyyNsxGInwsQMfKLbhhrOdh7DHW3qdFcV3py2OH1BjiDRihJ0kdG_oNP0eQP2gyNyw0lnOEQ7h7VmJI_FX5dS_g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"imageUrl\": \"/static/images/products/PRD-2025-STEEL-008/main/product_PRD-2025-STEEL-008_20251206T191650.341029Z_b4afcd98.jpg\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/api/products/PRD-2025-STEEL-008/image/main",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"products",
+						"PRD-2025-STEEL-008",
+						"image",
+						"main"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "product ThumbImage",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiI5NzQ0YWFmMy02ZTE5LTQ0ODgtODYyYi02M2MwYjBhYzc0NjkiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MDQzODA4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MTMwMjA4LCJpYXQiOjE3NjUwNDM4MDgsImp0aSI6IjQwOGY4NTY2LTQ1NGYtNGQxNi04NTYxLTY3ODdjZGVlM2Y5ZCJ9.f593wGIRpQueu5Uh4CI2ZwXlvaBytA-8i4ge4e4-mE8djncqb-e-CLkfzX877H7NBmCFTy-NiajXV5bMJNu1ow0pcOmlFKFn3jsw08IvWUx7KcrCy8VL7RQP36FHOzl-PX5y00MqXLo-tlThMkSNl9RcMph3oBVuQn4B4U8hO_qxAGxInDs9B_ogWQQfeKUXXaXtPtbDp6yRHwnMlQumfGbQaejVkchl921x1aq-LeauGX8AbE-MnLOoFOyTtg_lyyNsxGInwsQMfKLbhhrOdh7DHW3qdFcV3py2OH1BjiDRihJ0kdG_oNP0eQP2gyNyw0lnOEQ7h7VmJI_FX5dS_g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"imageUrl\": \"/static/images/products/PRD-2025-STEEL-008/thumbnail/product_PRD-2025-STEEL-008_20251206T191559.876383Z_cc55162.jpg\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/api/products/PRD-2025-STEEL-008/image/thumbnail",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"products",
+						"PRD-2025-STEEL-008",
+						"image",
+						"thumbnail"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "product Details",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiI5NzQ0YWFmMy02ZTE5LTQ0ODgtODYyYi02M2MwYjBhYzc0NjkiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MDQzODA4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MTMwMjA4LCJpYXQiOjE3NjUwNDM4MDgsImp0aSI6IjQwOGY4NTY2LTQ1NGYtNGQxNi04NTYxLTY3ODdjZGVlM2Y5ZCJ9.f593wGIRpQueu5Uh4CI2ZwXlvaBytA-8i4ge4e4-mE8djncqb-e-CLkfzX877H7NBmCFTy-NiajXV5bMJNu1ow0pcOmlFKFn3jsw08IvWUx7KcrCy8VL7RQP36FHOzl-PX5y00MqXLo-tlThMkSNl9RcMph3oBVuQn4B4U8hO_qxAGxInDs9B_ogWQQfeKUXXaXtPtbDp6yRHwnMlQumfGbQaejVkchl921x1aq-LeauGX8AbE-MnLOoFOyTtg_lyyNsxGInwsQMfKLbhhrOdh7DHW3qdFcV3py2OH1BjiDRihJ0kdG_oNP0eQP2gyNyw0lnOEQ7h7VmJI_FX5dS_g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/api/products/PRD-2025-STEEL-008",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"products",
+						"PRD-2025-STEEL-008"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "product summary",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiI5NzQ0YWFmMy02ZTE5LTQ0ODgtODYyYi02M2MwYjBhYzc0NjkiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MDQzODA4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MTMwMjA4LCJpYXQiOjE3NjUwNDM4MDgsImp0aSI6IjQwOGY4NTY2LTQ1NGYtNGQxNi04NTYxLTY3ODdjZGVlM2Y5ZCJ9.f593wGIRpQueu5Uh4CI2ZwXlvaBytA-8i4ge4e4-mE8djncqb-e-CLkfzX877H7NBmCFTy-NiajXV5bMJNu1ow0pcOmlFKFn3jsw08IvWUx7KcrCy8VL7RQP36FHOzl-PX5y00MqXLo-tlThMkSNl9RcMph3oBVuQn4B4U8hO_qxAGxInDs9B_ogWQQfeKUXXaXtPtbDp6yRHwnMlQumfGbQaejVkchl921x1aq-LeauGX8AbE-MnLOoFOyTtg_lyyNsxGInwsQMfKLbhhrOdh7DHW3qdFcV3py2OH1BjiDRihJ0kdG_oNP0eQP2gyNyw0lnOEQ7h7VmJI_FX5dS_g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/api/products/PRD-2025-STEEL-008/summary",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"products",
+						"PRD-2025-STEEL-008",
+						"summary"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "batch",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiIwZDc4YWJkNi0zNDBmLTQwZjktYTUwYy0yYmM5ZDNhMDRkNDciLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MTM0MzY4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MjIwNzY4LCJpYXQiOjE3NjUxMzQzNjgsImp0aSI6ImY2MDM5NmUzLTgxZmYtNGUyYS04YjA0LTExNjEzZjc4MTg4NyJ9.vV_uhuueh33tg1KkE3JjWblPbX5MGCcsWm-1zQXduqP4hLXG_hG95YhqNIOpVgoyaidPva9nvxCkUCxsv1PwtQYsX-4aJAfMlUZ1o5-sGgLWwFKrApd0f2TiSWfyl9Ho5tcHmA7f1lWMITSiAb0JzAFXfttnaP2gPCe0nOoyaqrG4smFE2JqSnUV_xECL0gEGx-jyoaisLnOTpwS3oU-MG9cxLH0AEnm6QW8DPsrzsqD8PZ_4sgO6UvPFkfc_qanQfv1cBRmU2WjjmG5I8npjD3pNxtXP4GR4T7sb3guNCgUG32uxkTpW8g5rbC6iz0WwDdsXD1fGAHhrCIy90uL6A",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"productCode\": \"PRD-2025-STEEL-009\",\n    \"brandName\": \"Some brand\",\n  \"status\": \"SUPPLYING\",\n  \"unit\": \"TON\",\n  \"currency\": \"TOMAN\",\n  \"minOrderQuantity\": 25,\n  \"unitPrice\": 48000000,\n  \"totalQuantity\": 200,\n  \"availableQuantity\": 120,\n  \"containerCount\": 10,\n  \"availableContainerCount\": 6,\n  \"solarExitDate\": \"1404/01/15\",\n  \"solarShippingDate\": \"1404/01/20\",\n  \"solarDeliveryDate\": \"1404/02/01\",\n  \"qualityStatus\": \"A\",\n  \"colorStatus\": \"UNIFORM\",\n  \"containerPackaging\": \"Jumbo Bag\",\n  \"insuranceCovered\": true,\n  \"continuousSupply\": false,\n  \"buyerApproved\": false,\n  \"orderInvoiceIssued\": true,\n  \"solarOrderInvoiceIssuedDate\": \"1403/01/15\",\n  \"investmentCompleted\": true,\n  \"salesAndDistribution\": false,\n  \"arrivedAtPort\": false,\n  \"productionStarted\": true,\n  \"containerDeparted\": false,\n  \"roiReach\": false,\n  \"solarInvestmentCompletedDate\": \"1403/02/01\",\n  \"solarProductionStartedDate\": \"1403/02/10\",\n  \"solarContainerDepartedDate\": \"1403/02/20\",\n  \"solarArrivedAtPortDate\": \"1403/02/25\",\n  \"solarSalesAndDistributionDate\": \"1403/03/01\",\n  \"solarRoiReachDate\": \"1403/04/15\",\n  \"byOnlinePayment\": true,\n  \"byBankTransfer\": true,\n  \"byInstallment\": false\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/api/admin/product-batches",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"admin",
+						"product-batches"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "batch delete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiIwZDc4YWJkNi0zNDBmLTQwZjktYTUwYy0yYmM5ZDNhMDRkNDciLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MTM0MzY4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MjIwNzY4LCJpYXQiOjE3NjUxMzQzNjgsImp0aSI6ImY2MDM5NmUzLTgxZmYtNGUyYS04YjA0LTExNjEzZjc4MTg4NyJ9.vV_uhuueh33tg1KkE3JjWblPbX5MGCcsWm-1zQXduqP4hLXG_hG95YhqNIOpVgoyaidPva9nvxCkUCxsv1PwtQYsX-4aJAfMlUZ1o5-sGgLWwFKrApd0f2TiSWfyl9Ho5tcHmA7f1lWMITSiAb0JzAFXfttnaP2gPCe0nOoyaqrG4smFE2JqSnUV_xECL0gEGx-jyoaisLnOTpwS3oU-MG9cxLH0AEnm6QW8DPsrzsqD8PZ_4sgO6UvPFkfc_qanQfv1cBRmU2WjjmG5I8npjD3pNxtXP4GR4T7sb3guNCgUG32uxkTpW8g5rbC6iz0WwDdsXD1fGAHhrCIy90uL6A",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/api/admin/product-batches/22",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"admin",
+						"product-batches",
+						"22"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "batch Update",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiIwZDc4YWJkNi0zNDBmLTQwZjktYTUwYy0yYmM5ZDNhMDRkNDciLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MTM0MzY4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MjIwNzY4LCJpYXQiOjE3NjUxMzQzNjgsImp0aSI6ImY2MDM5NmUzLTgxZmYtNGUyYS04YjA0LTExNjEzZjc4MTg4NyJ9.vV_uhuueh33tg1KkE3JjWblPbX5MGCcsWm-1zQXduqP4hLXG_hG95YhqNIOpVgoyaidPva9nvxCkUCxsv1PwtQYsX-4aJAfMlUZ1o5-sGgLWwFKrApd0f2TiSWfyl9Ho5tcHmA7f1lWMITSiAb0JzAFXfttnaP2gPCe0nOoyaqrG4smFE2JqSnUV_xECL0gEGx-jyoaisLnOTpwS3oU-MG9cxLH0AEnm6QW8DPsrzsqD8PZ_4sgO6UvPFkfc_qanQfv1cBRmU2WjjmG5I8npjD3pNxtXP4GR4T7sb3guNCgUG32uxkTpW8g5rbC6iz0WwDdsXD1fGAHhrCIy90uL6A",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"productCode\": \"PRD-2025-STEEL-008\",\n  \"brandName\": \"Some brand\",\n  \"status\": \"SUPPLYING\",\n  \"unit\": \"TON\",\n  \"currency\": \"TOMAN\",\n  \"minOrderQuantity\": 25,\n  \"unitPrice\": 48000000,\n  \"totalQuantity\": 200,\n  \"availableQuantity\": 120,\n  \"containerCount\": 10,\n  \"availableContainerCount\": 6,\n  \"solarExitDate\": \"1404/01/15\",\n  \"solarShippingDate\": \"1404/01/20\",\n  \"solarDeliveryDate\": \"1404/02/01\",\n  \"qualityStatus\": \"A\",\n  \"colorStatus\": \"UNIFORM\",\n  \"containerPackaging\": \"Jumbo Bag\",\n  \"customsCode\": \"72072090\",\n  \"insuranceCovered\": true,\n  \"continuousSupply\": false,\n  \"buyerApproved\": false,\n  \"orderInvoiceIssued\": true,\n  \"solarOrderInvoiceIssuedDate\": \"1403/01/15\",\n  \"investmentCompleted\": true,\n  \"salesAndDistribution\": false,\n  \"arrivedAtPort\": false,\n  \"productionStarted\": true,\n  \"containerDeparted\": false,\n  \"roiReach\": false,\n  \"solarInvestmentCompletedDate\": \"1403/02/01\",\n  \"solarProductionStartedDate\": \"1403/02/10\",\n  \"solarContainerDepartedDate\": \"1403/02/20\",\n  \"solarArrivedAtPortDate\": \"1403/02/25\",\n  \"solarSalesAndDistributionDate\": \"1403/03/01\",\n  \"solarRoiReachDate\": \"1403/04/15\",\n  \"byOnlinePayment\": true,\n  \"byBankTransfer\": true,\n  \"byInstallment\": false\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/api/admin/product-batches/21",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"admin",
+						"product-batches",
+						"21"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "batch list/search/filter",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiIwZDc4YWJkNi0zNDBmLTQwZjktYTUwYy0yYmM5ZDNhMDRkNDciLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MTM0MzY4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MjIwNzY4LCJpYXQiOjE3NjUxMzQzNjgsImp0aSI6ImY2MDM5NmUzLTgxZmYtNGUyYS04YjA0LTExNjEzZjc4MTg4NyJ9.vV_uhuueh33tg1KkE3JjWblPbX5MGCcsWm-1zQXduqP4hLXG_hG95YhqNIOpVgoyaidPva9nvxCkUCxsv1PwtQYsX-4aJAfMlUZ1o5-sGgLWwFKrApd0f2TiSWfyl9Ho5tcHmA7f1lWMITSiAb0JzAFXfttnaP2gPCe0nOoyaqrG4smFE2JqSnUV_xECL0gEGx-jyoaisLnOTpwS3oU-MG9cxLH0AEnm6QW8DPsrzsqD8PZ_4sgO6UvPFkfc_qanQfv1cBRmU2WjjmG5I8npjD3pNxtXP4GR4T7sb3guNCgUG32uxkTpW8g5rbC6iz0WwDdsXD1fGAHhrCIy90uL6A",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/api/product-batches?categoryId=5&name=hot&status=SUPPLYING&size=1&page=0",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"product-batches"
+					],
+					"query": [
+						{
+							"key": "categoryId",
+							"value": "5"
+						},
+						{
+							"key": "name",
+							"value": "hot"
+						},
+						{
+							"key": "status",
+							"value": "SUPPLYING"
+						},
+						{
+							"key": "size",
+							"value": "1"
+						},
+						{
+							"key": "page",
+							"value": "0"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "batch details",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiIwZDc4YWJkNi0zNDBmLTQwZjktYTUwYy0yYmM5ZDNhMDRkNDciLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIwMDAwMDAyIiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY1MTM0MzY4LCJ1c2VyX2lkIjoyOCwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX0FETUlOIiwiUk9MRV9QVUJMSUMiXSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgxIiwiYnV5ZXJUeXBlIjoiUFVCTElDIiwiZXhwIjoxNzY1MjIwNzY4LCJpYXQiOjE3NjUxMzQzNjgsImp0aSI6ImY2MDM5NmUzLTgxZmYtNGUyYS04YjA0LTExNjEzZjc4MTg4NyJ9.vV_uhuueh33tg1KkE3JjWblPbX5MGCcsWm-1zQXduqP4hLXG_hG95YhqNIOpVgoyaidPva9nvxCkUCxsv1PwtQYsX-4aJAfMlUZ1o5-sGgLWwFKrApd0f2TiSWfyl9Ho5tcHmA7f1lWMITSiAb0JzAFXfttnaP2gPCe0nOoyaqrG4smFE2JqSnUV_xECL0gEGx-jyoaisLnOTpwS3oU-MG9cxLH0AEnm6QW8DPsrzsqD8PZ_4sgO6UvPFkfc_qanQfv1cBRmU2WjjmG5I8npjD3pNxtXP4GR4T7sb3guNCgUG32uxkTpW8g5rbC6iz0WwDdsXD1fGAHhrCIy90uL6A",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/api/product-batches/23",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"product-batches",
+						"23"
+					],
+					"query": [
+						{
+							"key": "categoryId",
+							"value": "1",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJraWQiOiI5NzQ0YWFmMy02ZTE5LTQ0ODgtODYyYi02M2MwYjBhYzc0NjkiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIrOTg5MTIxMjM0NTI5IiwiYXVkIjoidGFtaW55YXItYmZmIiwibmJmIjoxNzY0OTYzMzI5LCJ1c2VyX2lkIjoyNSwic2NvcGUiOlsidGFtaW55YXIuYXBpIiwib3BlbmlkIiwicHJvZmlsZSJdLCJyb2xlcyI6WyJST0xFX1BVQkxJQyJdLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODEiLCJidXllclR5cGUiOiJQVUJMSUMiLCJleHAiOjE3NjUwNDk3MjksImlhdCI6MTc2NDk2MzMyOSwianRpIjoiMTQxNDhiNGItMGY0YS00OTI2LWFkNWMtYmIwNjgyMThiNTc0In0.qBKRZR4UsdlgsBeJGQwr0GqKwKBI1P2doNKiPhKOC1KzHGA9onQpEYaTX2lZnblJ8RCONtKS8CQbKW8Yd3B1N5uf-klIqAVQr9Uj6GTBT9THw4_1ZI1-GnR-yFdzkr514XmJB9iqHOyER8pMd5MzhTbY2WXuMI5JBbHkHuUiMh5nPOEm3ZxLN1IrCan5ux8lRAfwraCMJoGSQvFM6yIVVr_07MzVRRIpCfeECiNolpLk5rbEz3U8mELolZq0WhTmp1qreStp6FMWbSNlbpEp3yN6Bj-T-dBD3GMSjjiuzD19z4VmDO8DIWCCPDrpy6rCCsHa5JtcrA0dvY1_zPs9Pw",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "BASE_URL",
+			"value": ""
+		}
+	]
+}
